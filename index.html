@@ -195,6 +195,7 @@ const CFG = {
   WHATSAPP_NUM: "[WHATSAPP_NUM]",                  // ex.: 5579999999999 (p/ botão do admin)
   LINK_PROX_BONUS: "[LINK_PROX_BONUS]",            // (modo comprador) próximo bônus: Caderno de Aplicação
   LINK_AREA_MEMBROS: "[LINK_AREA_MEMBROS]",        // (modo comprador) voltar à área de membros
+  LINK_POLITICA: "politica.html",                 // política de privacidade (co-hospedada ao lado do quiz) — LGPD
   PIXEL_ON: false
 };
 const _modo = new URLSearchParams(location.search).get("modo");
@@ -475,7 +476,7 @@ function renderCapture(){
     <div class="field"><label>E-mail</label><input id="f_email" type="email" autocomplete="email"><div class="err">E-mail inválido.</div></div>
     <div class="field"><label>WhatsApp (com DDD)</label><input id="f_wpp" inputmode="tel" placeholder="(79) 9 9999-9999"><div class="err">Coloca um WhatsApp válido.</div></div>
     <div class="field"><label>Instagram <span class="muted">(opcional)</span></label><input id="f_insta" placeholder="@seuusuario"></div>
-    <label class="consent"><input type="checkbox" id="f_lgpd"><span>Autorizo o contato da equipe do Jâmisson Ferreira por e-mail/WhatsApp e o uso dos meus dados conforme a política de privacidade (LGPD).</span></label>
+    <label class="consent"><input type="checkbox" id="f_lgpd"><span>Autorizo o contato da equipe do Jâmisson Ferreira por e-mail/WhatsApp e o uso dos meus dados conforme a <a href="${CFG.LINK_POLITICA}" target="_blank" rel="noopener">Política de Privacidade</a> (LGPD).</span></label>
     <div class="cta-row"><button class="cta" onclick="finishCapture()">${isca?"Ver meu diagnóstico ▸":"Ver meu resultado ▸"}</button></div>
   </div>`;
 }
