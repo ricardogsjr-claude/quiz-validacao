@@ -413,12 +413,20 @@ function renderResult(){
       <p style="margin:14px 0 0">Agências como a sua perdem, em média, <span class="val">~R$ 50 mil por ano</span> nesses furos. O teto documentado de prejuízo evitável chega a <span class="val">R$ 919 mil</span>. Os números são referência do que se recupera e do que se evita — não uma promessa.</p>
     </div>
     <div class="beliefs"><div class="b antes"><div class="t">Antes</div>${CRENCA[p.raiz].antes}</div><div class="b depois"><div class="t">Depois do desafio</div>${CRENCA[p.raiz].depois}</div></div>
-    <h3 style="margin-top:24px">${rec.rec?(rec.soft?"Vale o desafio":"Recomendação: faça este desafio"):"Talvez não seja a sua hora"}</h3><p>${rec.txt}</p>`;
+    ${(rec.rec && p.livro!=="leu" && p.livro!=="lendo") ? `<h3 style="margin-top:24px">${rec.soft?"Vale o desafio":"Recomendação: faça este desafio"}</h3><p>${rec.txt}</p>` : (!rec.rec ? `<h3 style="margin-top:24px">Talvez não seja a sua hora</h3><p>${rec.txt}</p>` : "")}`;
   if(rec.rec){
     h+=`<div class="card guide"><span class="label">Seu plano de aplicação (por onde começar)</span><p style="margin:6px 0 0">O seu furo principal é o <b>${r.leak}</b> (${r.furos}). Ataque nesta ordem:</p><ol>${GUIA[p.raiz].map(li=>`<li>${li}</li>`).join("")}</ol></div>
-    <div class="qw"><span class="label" style="color:var(--gold-text)">Comece hoje, antes mesmo do desafio</span><p style="margin:8px 0 0">${QUICKWIN[p.raiz]}</p></div>
-    <h3 style="margin-top:22px">O que muda quando você tapa os furos</h3>${VITORIAS.map(w=>`<div class="win"><span class="mk">◆</span><span>${w}</span></div>`).join("")}
+    <div class="qw"><span class="label" style="color:var(--gold-text)">Comece hoje</span><p style="margin:8px 0 0">${QUICKWIN[p.raiz]}</p></div>`;
+    if(p.livro==="leu"){
+      h+=`<h3 style="margin-top:22px">Você já fez o desafio. O furo mais caro é a precificação.</h3><p>Você tapou os furos operacionais; sobra o Furo 7, o estrutural — onde a margem é decidida. É o que a gente trabalha caso a caso na consultoria. <span class="muted">(Quer medir seu antes e depois? Veja <a href="?modo=pos">esta versão</a>.)</span></p>
+      <div class="cta-row" style="margin-top:8px"><a class="cta" href="${CFG.LINK_CONSULTORIA}" target="_blank" rel="noopener" onclick="pixel('Lead','cta_consultoria')">Quero conhecer a consultoria ›</a><button class="cta ghost" onclick="window.print()">Salvar meu diagnóstico (PDF)</button></div>`;
+    } else if(p.livro==="lendo"){
+      h+=`<h3 style="margin-top:22px">Você já está no desafio. Aproveite as ferramentas.</h3><p>Use o plano acima pra ir direto ao seu furo principal e acessar as ferramentas na área de membros.</p>
+      <div class="cta-row" style="margin-top:8px"><a class="cta" href="${CFG.LINK_AREA_MEMBROS}" onclick="pixel('ViewContent','cta_membros')">Acessar minhas ferramentas ›</a><button class="cta ghost" onclick="window.print()">Salvar meu diagnóstico (PDF)</button></div>`;
+    } else {
+      h+=`<h3 style="margin-top:22px">O que muda quando você tapa os furos</h3>${VITORIAS.map(w=>`<div class="win"><span class="mk">◆</span><span>${w}</span></div>`).join("")}
     <div class="cta-row" style="margin-top:24px"><a class="cta" href="${CFG.LINK_CHECKOUT}" target="_blank" rel="noopener" onclick="pixel('AddToCart','cta_checkout')">Fazer o Desafio dos 7 Furos ›</a><button class="cta ghost" onclick="window.print()">Salvar meu diagnóstico (PDF)</button></div>`;
+    }
   } else { h+=`<div class="cta-row" style="margin-top:20px"><button class="cta ghost" onclick="window.print()">Salvar meu diagnóstico (PDF)</button></div>`; }
   h+=`<p class="foot-note">Este diagnóstico é um espelho da sua percepção sobre o caixa da sua agência, não uma auditoria nem uma garantia de resultado. Os valores citados são referências documentadas (média recuperada e teto evitável), e variam por agência. © Escritório de Contratos.</p></div>`;
   stage.innerHTML=h;

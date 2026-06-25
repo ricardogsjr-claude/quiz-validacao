@@ -567,8 +567,7 @@ function renderResult(){
       <div class="b depois"><div class="t">Depois do livro</div>${CRENCA[p.raiz].depois}</div>
     </div>
 
-    <h3 style="margin-top:24px">${rec.rec? (rec.soft?"Vale a leitura":"Recomendação: leia este livro"):"Talvez não seja a sua hora"}</h3>
-    <p>${rec.txt}</p>`;
+    ${(rec.rec && p.livro!=="leu" && p.livro!=="lendo") ? `<h3 style="margin-top:24px">${rec.soft?"Vale a leitura":"Recomendação: leia este livro"}</h3><p>${rec.txt}</p>` : (!rec.rec ? `<h3 style="margin-top:24px">Talvez não seja a sua hora</h3><p>${rec.txt}</p>` : "")}`;
 
   if(rec.rec){
     h+=`<div class="card guide">
@@ -576,13 +575,30 @@ function renderResult(){
       <p style="margin:6px 0 0">A sua raiz é <b>${r.virada}</b> (${r.cap}). Leia nesta ordem pra aproveitar mais:</p>
       <ol>${GUIA[p.raiz].map(li=>`<li>${li}</li>`).join("")}</ol>
     </div>
-    <div class="qw"><span class="label" style="color:var(--red)">Comece hoje, antes mesmo do livro</span><p style="margin:8px 0 0">${QUICKWIN[p.raiz]}</p></div>
-    <h3 style="margin-top:22px">O que muda quando você lê</h3>
-    ${VITORIAS.map(v=>`<div class="win"><span class="em">▸</span><span>${v}</span></div>`).join("")}
-    <div class="cta-row" style="margin-top:24px">
-      <a class="cta" href="${CFG.LINK_AMAZON_LIVRO}" target="_blank" rel="noopener" onclick="pixel('AddToCart','cta_amazon')">Garantir meu exemplar na Amazon ▸</a>
-      <button class="cta ghost noprint" onclick="window.print()">Salvar meu diagnóstico (PDF) ⤓</button>
-    </div>`;
+    <div class="qw"><span class="label" style="color:var(--red)">Comece hoje</span><p style="margin:8px 0 0">${QUICKWIN[p.raiz]}</p></div>`;
+    // próximo passo adapta pela relação com o livro — uma versão só pra tudo
+    if(p.livro==="leu"){
+      h+=`<h3 style="margin-top:22px">Você já leu. O próximo degrau é o ELO.</h3>
+      <p>O livro foi a leitura. O ELO é a experiência: com método e com outros donos, você vive a virada mais funda. Como já fez o caminho, faz sentido conhecer. <span class="muted">(Quer medir o seu antes e depois? Veja <a href="?modo=pos">esta versão</a>.)</span></p>
+      <div class="cta-row" style="margin-top:8px">
+        <a class="cta" href="${CFG.LINK_LISTA_ESPERA_ELO}" target="_blank" rel="noopener" onclick="pixel('Lead','cta_elo')">Entrar na lista de espera do ELO ▸</a>
+        <button class="cta ghost noprint" onclick="window.print()">Salvar meu diagnóstico (PDF) ⤓</button>
+      </div>`;
+    } else if(p.livro==="lendo"){
+      h+=`<h3 style="margin-top:22px">Você já está com o livro. Aproveite o seu kit.</h3>
+      <p>Use o guia acima pra ir direto à sua virada e acessar os seus bônus na área de membros.</p>
+      <div class="cta-row" style="margin-top:8px">
+        <a class="cta" href="${CFG.LINK_AREA_MEMBROS}" onclick="pixel('ViewContent','cta_membros')">Acessar meus bônus ▸</a>
+        <button class="cta ghost noprint" onclick="window.print()">Salvar meu diagnóstico (PDF) ⤓</button>
+      </div>`;
+    } else {
+      h+=`<h3 style="margin-top:22px">O que muda quando você lê</h3>
+      ${VITORIAS.map(v=>`<div class="win"><span class="em">▸</span><span>${v}</span></div>`).join("")}
+      <div class="cta-row" style="margin-top:24px">
+        <a class="cta" href="${CFG.LINK_AMAZON_LIVRO}" target="_blank" rel="noopener" onclick="pixel('AddToCart','cta_amazon')">Garantir meu exemplar na Amazon ▸</a>
+        <button class="cta ghost noprint" onclick="window.print()">Salvar meu diagnóstico (PDF) ⤓</button>
+      </div>`;
+    }
   } else {
     h+=`<div class="cta-row" style="margin-top:20px"><button class="cta ghost noprint" onclick="window.print()">Salvar meu diagnóstico (PDF) ⤓</button></div>`;
   }
