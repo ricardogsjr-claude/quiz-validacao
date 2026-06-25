@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!--
-  UniJam · U01 — Quiz "Diagnóstico do Dono Sobrecarregado"
+  UniJam · U01 - Quiz "Diagnóstico do Dono Sobrecarregado"
   DS "Telemetria Senna" (Fontes/Design/tokens.css inlinado). Self-contained, mobile-first, sem libs.
   DOIS MODOS no mesmo arquivo:
     • ISCA (padrão): topo de funil. Diagnostica → recomenda (ou não) o livro → CTA Amazon → relatório de lead p/ comercial.
@@ -18,7 +18,7 @@
 <!-- WhatsApp/redes: preview do link compartilhado -->
 <meta property="og:type" content="website">
 <meta property="og:title" content="Diagnóstico do Dono Sobrecarregado">
-<meta property="og:description" content="Em 2 minutos, descubra o tamanho do peso que você carrega como dono — e o que fazer com ele.">
+<meta property="og:description" content="Em 2 minutos, descubra o tamanho do peso que você carrega como dono e o que fazer com ele.">
 <meta name="theme-color" content="#F7F6F4">
 <!-- Fontes por <link> (mais confiável que @import no navegador interno do WhatsApp) -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -34,7 +34,7 @@
   --serif:'Fraunces',Georgia,serif;--grotesk:'Archivo',system-ui,sans-serif;--track:.18em;
   --maxw:640px;--radius:14px;--rule:3px;
 }
-/* fontes carregadas via <link> no <head> — whatsapp-friendly */
+/* fontes carregadas via <link> no <head> - whatsapp-friendly */
 *{box-sizing:border-box;margin:0;padding:0}
 html{scroll-behavior:smooth}
 body{background:var(--paper);color:var(--ink);font-family:var(--serif);line-height:1.6;-webkit-font-smoothing:antialiased;min-height:100vh}
@@ -137,7 +137,7 @@ p b,p strong{color:var(--ink)}
 .adm-kpi .k{font-family:var(--grotesk);font-size:.72rem;color:var(--steel);text-transform:uppercase;letter-spacing:.08em}
 .lead-row{border-top:1px solid var(--line);padding:12px 0;font-family:var(--grotesk);font-size:.86rem}
 .stars{color:var(--red);letter-spacing:2px}
-.wbtn{display:inline-block;background:#25D366;color:#fff;text-decoration:none;font-family:var(--grotesk);font-weight:700;font-size:.78rem;padding:6px 12px;border-radius:8px;margin-top:6px}
+.wbtn{display:inline-block;background:#25D366;color:#fff;text-decoration:none;font-family:var(--grotesk);font-weight:700;font-size:.78rem;padding:6px 12px;border-radius:10px;margin-top:6px}
 .tag{display:inline-block;font-family:var(--grotesk);font-weight:700;font-size:.68rem;text-transform:uppercase;letter-spacing:.06em;padding:3px 8px;border-radius:6px;background:var(--paper);border:1px solid var(--line);color:var(--ink-2)}
 
 /* Image slot (Kit de Imagens) */
@@ -152,7 +152,7 @@ p b,p strong{color:var(--ink)}
 .stepper .st.done .dot{background:var(--ok)}
 @media (max-width:420px){.scale{grid-template-columns:repeat(6,1fr)}.beliefs{grid-template-columns:1fr}.stepper .st .lbl{display:none}.stepper .st{min-width:0;justify-content:center}}
 
-/* PRINT — só o diagnóstico do lead */
+/* PRINT - só o diagnóstico do lead */
 @media print{
   .topbar,.back,.cta-row,.cta,.foot-note .noprint,#admin-view,.imgslot{display:none!important}
   body{background:#fff}
@@ -195,7 +195,7 @@ const CFG = {
   WHATSAPP_NUM: "[WHATSAPP_NUM]",                  // ex.: 5579999999999 (p/ botão do admin)
   LINK_PROX_BONUS: "[LINK_PROX_BONUS]",            // (modo comprador) próximo bônus: Caderno de Aplicação
   LINK_AREA_MEMBROS: "[LINK_AREA_MEMBROS]",        // (modo comprador) voltar à área de membros
-  LINK_POLITICA: "politica.html",                 // política de privacidade (co-hospedada ao lado do quiz) — LGPD
+  LINK_POLITICA: "politica.html",                 // política de privacidade (co-hospedada ao lado do quiz) - LGPD
   PIXEL_ON: false
 };
 const _modo = new URLSearchParams(location.search).get("modo");
@@ -204,9 +204,9 @@ const MODE = _modo==="pos" ? "pos" : (_modo==="comprador"||_modo==="bonus") ? "c
 /* ====================== CONTEÚDO ====================== */
 // As 4 raízes (definidas pela pergunta "maior desafio") → virada/capítulos
 const RAIZ = {
-  delegar:  {emoji:"🪨", nome:"O peso de carregar tudo", virada:"Virada 2 — Soltar sem largar", cap:"capítulo 11"},
-  decidir:  {emoji:"🌪️", nome:"A cabeça que não desliga", virada:"Virada 3 — Decidir sem reagir e descansar sem culpa", cap:"capítulo 12"},
-  enxergar: {emoji:"🌫️", nome:"O peso sem nome", virada:"Virada 1 — Enxergar e nomear o peso", cap:"capítulo 10"},
+  delegar:  {emoji:"🪨", nome:"O peso de carregar tudo", virada:"Virada 2: Soltar sem largar", cap:"capítulo 11"},
+  decidir:  {emoji:"🌪️", nome:"A cabeça que não desliga", virada:"Virada 3: Decidir sem reagir e descansar sem culpa", cap:"capítulo 12"},
+  enxergar: {emoji:"🌫️", nome:"O peso sem nome", virada:"Virada 1: Enxergar e nomear o peso", cap:"capítulo 10"},
   liderar:  {emoji:"👥", nome:"O desgaste de liderar gente", virada:"Liderar pessoas sem se destruir", cap:"capítulo 13"}
 };
 // Diagnóstico por raiz (modulado pela banda no texto de abertura)
@@ -577,7 +577,7 @@ function renderResult(){
       <ol>${GUIA[p.raiz].map(li=>`<li>${li}</li>`).join("")}</ol>
     </div>
     <div class="qw"><span class="label" style="color:var(--red)">Comece hoje</span><p style="margin:8px 0 0">${QUICKWIN[p.raiz]}</p></div>`;
-    // próximo passo adapta pela relação com o livro — uma versão só pra tudo
+    // próximo passo adapta pela relação com o livro - uma versão só pra tudo
     if(p.livro==="leu"){
       h+=`<h3 style="margin-top:22px">Você já leu. O próximo degrau é o ELO.</h3>
       <p>O livro foi a leitura. O ELO é a experiência: com método e com outros donos, você vive a virada mais funda. Como já fez o caminho, faz sentido conhecer. <span class="muted">(Quer medir o seu antes e depois? Veja <a href="?modo=pos">esta versão</a>.)</span></p>
@@ -716,18 +716,18 @@ function showAdmin(){
   const conv = acessos? Math.round((capt/acessos)*100):0;
   document.getElementById("adm-kpis").innerHTML=[
     ["Acessos",acessos],["Leads",capt],["Conclusão",conv+"%"],
-    ["★ média", capt? (leads.reduce((a,l)=>a+l.estrelas,0)/capt).toFixed(1):"—"]
+    ["★ média", capt? (leads.reduce((a,l)=>a+l.estrelas,0)/capt).toFixed(1):"n/d"]
   ].map(k=>`<div class="adm-kpi"><div class="v">${k[1]}</div><div class="k">${k[0]}</div></div>`).join("");
   // distribuição da pergunta-chave
   const keys=["delegar","decidir","enxergar","liderar"];
-  const dist=keys.map(k=>{const c=leads.filter(l=>l.perfil.raiz===k).length;return `<div class="lead-row">${(RAIZ[k]||{}).emoji} ${(RAIZ[k]||{}).nome} — <b>${c}</b> (${capt?Math.round(c/capt*100):0}%)</div>`}).join("");
+  const dist=keys.map(k=>{const c=leads.filter(l=>l.perfil.raiz===k).length;return `<div class="lead-row">${(RAIZ[k]||{}).emoji} ${(RAIZ[k]||{}).nome}: <b>${c}</b> (${capt?Math.round(c/capt*100):0}%)</div>`}).join("");
   document.getElementById("adm-dist").innerHTML=dist||"<p class='muted'>Sem dados ainda.</p>";
   // leads
   document.getElementById("adm-leads").innerHTML = capt? leads.slice().reverse().map(l=>{
     const c=l.contato||{}; const wn=(c.wpp||"").replace(/\D/g,"");
     return `<div class="lead-row">
       <span class="stars">${"★".repeat(l.estrelas)}${"☆".repeat(5-l.estrelas)}</span>
-      <b>${c.nome||"—"}</b> · ${c.email||"—"} · ${c.wpp||"—"} ${c.insta?("· "+c.insta):""}
+      <b>${c.nome||"n/d"}</b> · ${c.email||"n/d"} · ${c.wpp||"n/d"} ${c.insta?("· "+c.insta):""}
       <div style="margin:4px 0"><span class="tag">${l.acao}</span> <span class="tag">${(RAIZ[l.perfil.raiz]||{}).nome||l.perfil.raiz}</span> <span class="tag">banda ${l.perfil.banda}</span> <span class="tag">disp ${l.perfil.disposicao}/10</span></div>
       ${l.perfil.depoimento?`<div style="font-style:italic;color:var(--ink)">“${l.perfil.depoimento}”</div>`:""}
       ${wn?`<a class="wbtn" target="_blank" href="https://wa.me/55${wn}?text=${encodeURIComponent("Oi "+(c.nome||"").split(" ")[0]+"! Aqui é da equipe do Jâmisson. Vi o seu diagnóstico e queria trocar uma ideia rápida com você.")}">WhatsApp</a>`:""}

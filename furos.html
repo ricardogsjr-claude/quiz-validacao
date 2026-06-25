@@ -75,22 +75,23 @@ p b{color:var(--text-dark);font-weight:700}
 .multi-note{margin:13px 0 0;color:var(--text-muted);font-size:.8rem}
 
 .scale{display:grid;grid-template-columns:repeat(11,1fr);gap:5px;margin:8px 0 6px}
-.scale button{aspect-ratio:1;border:1px solid var(--gold-border-soft);background:var(--bg-white);border-radius:var(--radius);font-family:var(--mono);font-weight:500;color:var(--text-secondary);cursor:pointer;font-size:.92rem}
+.scale button{aspect-ratio:1;border:1px solid var(--gold-border-soft);background:var(--bg-white);border-radius:var(--radius);font-family:var(--mono);font-weight:500;color:var(--text-secondary);cursor:pointer;font-size:.92rem;transition:background .15s,border-color .15s,color .15s}
 .scale button:hover{border-color:var(--gold)}
-.scale button.sel{background:var(--gold);border-color:var(--gold);color:#fff}
+.scale button.sel{background:var(--gold);border-color:var(--gold);color:#1a1410}
 .scale-ends{display:flex;justify-content:space-between;color:var(--text-muted);font-size:.74rem;margin-bottom:18px}
 
 .field{margin:0 0 14px}
 .field label{display:block;font-family:var(--sans);font-weight:700;font-size:.72rem;letter-spacing:.06em;text-transform:uppercase;color:var(--text-dark);margin:0 0 6px}
-.field input,.field textarea{width:100%;font-family:var(--sans);font-size:1rem;color:var(--text-dark);background:var(--bg-white);border:1px solid var(--gold-border-soft);border-radius:var(--radius);padding:13px 14px}
-.field input:focus,.field textarea:focus{outline:none;border-color:var(--gold)}
+.field input,.field textarea{width:100%;font-family:var(--sans);font-size:1rem;color:var(--text-dark);background:var(--bg-white);border:1px solid var(--gold-border);border-radius:var(--radius);padding:13px 14px;transition:border-color .15s,box-shadow .15s}
+.field input::placeholder,.field textarea::placeholder{color:var(--text-muted)}
+.field input:focus,.field textarea:focus{outline:none;border-color:var(--gold);box-shadow:0 0 0 2px var(--gold-border-soft)}
 .field.bad input{border-color:var(--red)}
 .field .err{color:var(--red);font-size:.74rem;margin-top:5px;display:none}
 .field.bad .err{display:block}
 .consent{display:flex;gap:10px;align-items:flex-start;margin:8px 0 20px;font-size:.82rem;color:var(--text-secondary)}
 .consent input{margin-top:4px;accent-color:var(--gold)}
 
-.cta{display:inline-block;width:100%;text-align:center;font-family:var(--sans);font-weight:700;letter-spacing:.03em;background:var(--gold);color:#1a1410;text-decoration:none;border:0;padding:16px 24px;border-radius:var(--radius);cursor:pointer;font-size:1rem;text-transform:uppercase}
+.cta{display:inline-block;width:100%;text-align:center;font-family:var(--sans);font-weight:700;letter-spacing:.03em;background:var(--gold);color:#1a1410;text-decoration:none;border:0;padding:16px 24px;border-radius:var(--radius);cursor:pointer;font-size:1rem;text-transform:uppercase;transition:background .15s,color .15s}
 .cta:hover{background:var(--gold-bright)}
 .cta.ghost{background:transparent;color:var(--text-dark);border:1px solid var(--gold-border)}
 .cta.ghost:hover{background:var(--gold-glow)}
@@ -100,8 +101,10 @@ p b{color:var(--text-dark);font-weight:700}
 .printhead{display:none}
 .diagnum{display:flex;align-items:baseline;gap:12px;margin:6px 0}
 .diagnum .big{font-family:var(--serif);font-weight:800;font-size:3rem;color:var(--red);line-height:1}
-.gauge{height:10px;border-radius:1px;background:linear-gradient(90deg,var(--green),var(--orange),var(--red));position:relative;margin:14px 0 6px}
-.gauge>i{position:absolute;top:-5px;width:2px;height:20px;background:var(--text-dark);transform:translateX(-50%)}
+.segbar{display:flex;gap:5px;margin:14px 0 6px}
+.segbar .seg{flex:1;height:10px;border-radius:1px;background:rgba(255,255,255,0.14);position:relative;overflow:hidden}
+.segbar .seg i{position:absolute;inset:0;background:var(--gold-bright)}
+.segbar .seg.red i{background:var(--red-soft)}
 .gauge-ends{display:flex;justify-content:space-between;color:var(--text-muted);font-size:.74rem}
 .card{background:var(--bg-white);border:1px solid var(--gold-border-soft);border-radius:var(--radius);padding:22px;margin:18px 0}
 .darkcard{background:var(--bg-dark);color:var(--text-on-dark);padding:24px;margin:18px 0;border-radius:var(--radius)}
@@ -143,7 +146,7 @@ p b{color:var(--text-dark);font-weight:700}
 .wbtn{display:inline-block;background:var(--green);color:#fff;text-decoration:none;font-weight:700;font-size:.76rem;padding:6px 12px;margin-top:6px}
 .tag{display:inline-block;font-weight:700;font-size:.66rem;text-transform:uppercase;letter-spacing:.06em;padding:3px 8px;background:var(--bg-page);border:1px solid var(--gold-border-soft);color:var(--text-secondary)}
 
-@media (max-width:420px){.scale{grid-template-columns:repeat(6,1fr)}.beliefs{grid-template-columns:1fr}.stepper .st .lbl{display:none}.stepper .st{min-width:0;justify-content:center}}
+@media (max-width:420px){.scale{gap:3px}.scale button{font-size:.8rem}.beliefs{grid-template-columns:1fr}.stepper .st .lbl{display:none}.stepper .st{min-width:0;justify-content:center}}
 @media print{.topbar,.back,.cta,.cta-row,#admin-view{display:none!important}.printhead{display:block!important}body{background:#fff}}
 </style>
 </head>
@@ -306,7 +309,7 @@ function render(){
   if(s.type==="result") return renderResult();
   let h=`<div class="screen">`;
   if(idx>1) h+=`<button class="back" onclick="go(-1)">‹ voltar</button>`;
-  h+=`<span class="kicker">${s.kicker||""}</span><h2 style="margin-top:10px">${s.title}</h2>`;
+  h+=`<h2 style="margin-top:10px">${s.title}</h2>`;
   h+= s.sub?`<p class="qsub">${s.sub}</p>`:`<div style="height:18px"></div>`;
   if(s.type==="single"){
     h+=`<div class="opts">`+s.options.map((o,i)=>`<button class="opt" onclick="pick('${s.id}','${o.val}',this)"><span class="mk">${o.em||"◆"}</span><span>${o.label}</span><span class="ck"></span></button>`).join("")+`</div>`;
@@ -319,6 +322,13 @@ function render(){
     h+=`<div class="field"><textarea id="txt" rows="4" placeholder="${s.placeholder||""}"></textarea></div><div class="cta-row"><button class="cta" onclick="submitText('${s.id}')">Continuar ›</button><button class="cta ghost" onclick="A['${s.id}']='';go(1)">Pular</button></div>`;
   }
   h+=`</div>`; stage.innerHTML=h;
+}
+/* barra segmentada JPS: SEMPRE 10 segmentos · dourado 1-6, vermelho 7-10 · preenche até n (nível de vazamento 0-10) */
+function segbar(n){
+  const fill=Math.max(0,Math.min(10,Math.round(n)));
+  let segs="";
+  for(let i=1;i<=10;i++){ const cls=i>6?"seg red":"seg"; segs+=`<div class="${cls}">${i<=fill?'<i></i>':''}</div>`; }
+  return `<div class="segbar">${segs}</div>`;
 }
 function stepper(active){
   const steps=["Mapa dos Furos","Travar o escopo","Régua de cobrança","Suspensão & negativação"];
@@ -403,12 +413,12 @@ function renderResult(){
   if(MODE==="comprador") return renderResultComprador(p,st);
   const r=RAIZ[p.raiz]||RAIZ.escopo; const rec=recommend(p);
   const nome=(A.contato&&A.contato.nome)?A.contato.nome.split(" ")[0]:"";
-  let h=`<div class="result"><div class="printhead"><span class="kicker">Diagnóstico dos 7 Furos</span><h2>${r.nome}</h2></div>
+  let h=`<div class="result"><div class="printhead"><h2>${r.nome}</h2></div>
     <span class="kicker">${nome?nome+", ":""}o seu furo principal</span><h1 style="margin-top:8px">${r.nome}</h1><div class="rule"></div>
     <p class="lead">${BANDA_INTRO[p.band]}</p><p>${DIAG[p.raiz]}</p>
     <div class="darkcard"><span class="label">Nível de vazamento</span>
       <div class="diagnum"><span class="big">${p.current}</span><span style="color:var(--text-on-dark-sub)">de 10 · quanto menor, mais blindada</span></div>
-      <div class="gauge"><i style="left:${(p.current/10)*100}%"></i></div>
+      ${segbar(p.current)}
       <div class="gauge-ends"><span style="color:var(--text-on-dark-sub)">caixa protegido</span><span style="color:var(--text-on-dark-sub)">hemorragia</span></div>
       <p style="margin:14px 0 0">Agências como a sua perdem, em média, <span class="val">~R$ 50 mil por ano</span> nesses furos. O teto documentado de prejuízo evitável chega a <span class="val">R$ 919 mil</span>. Os números são referência do que se recupera e do que se evita — não uma promessa.</p>
     </div>
@@ -452,7 +462,7 @@ function renderResultComprador(p,st){
   stage.innerHTML=`<div class="result"><div class="printhead"><span class="kicker">Mapa dos 7 Furos</span><h2>${r.nome}</h2></div>
     <span class="kicker">${nome?nome+", ":""}o seu mapa</span><h1 style="margin-top:8px">${r.nome}</h1><div class="rule"></div>
     <p class="lead">${BANDA_INTRO[p.band]}</p><p>${DIAG[p.raiz]}</p>
-    <div class="darkcard"><span class="label">Nível de vazamento</span><div class="diagnum"><span class="big">${p.current}</span><span style="color:var(--text-on-dark-sub)">de 10</span></div><div class="gauge"><i style="left:${(p.current/10)*100}%"></i></div><div class="gauge-ends"><span style="color:var(--text-on-dark-sub)">caixa protegido</span><span style="color:var(--text-on-dark-sub)">hemorragia</span></div></div>
+    <div class="darkcard"><span class="label">Nível de vazamento</span><div class="diagnum"><span class="big">${p.current}</span><span style="color:var(--text-on-dark-sub)">de 10</span></div>${segbar(p.current)}<div class="gauge-ends"><span style="color:var(--text-on-dark-sub)">caixa protegido</span><span style="color:var(--text-on-dark-sub)">hemorragia</span></div></div>
     <div class="card guide"><span class="label">Por onde começar a tapar</span><p style="margin:6px 0 0">Seu furo principal é o <b>${r.leak}</b> (${r.furos}).</p><ol>${GUIA[p.raiz].map(li=>`<li>${li}</li>`).join("")}</ol></div>
     <div class="qw"><span class="label" style="color:var(--gold-text)">Faça agora</span><p style="margin:8px 0 0">${QUICKWIN[p.raiz]}</p></div>
     <h3 style="margin-top:24px">Próximo passo do seu desafio</h3>${stepper(2)}
