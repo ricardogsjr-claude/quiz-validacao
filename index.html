@@ -1,0 +1,730 @@
+<!DOCTYPE html>
+<!--
+  UniJam · U01 — Quiz "Diagnóstico do Dono Sobrecarregado"
+  DS "Telemetria Senna" (Fontes/Design/tokens.css inlinado). Self-contained, mobile-first, sem libs.
+  DOIS MODOS no mesmo arquivo:
+    • ISCA (padrão): topo de funil. Diagnostica → recomenda (ou não) o livro → CTA Amazon → relatório de lead p/ comercial.
+    • PÓS-LEITURA (?modo=pos): pra quem concluiu o livro. Antes × depois → depoimento + indicação → CTA ELO (lista de espera).
+  Base: guia Ladeira de funil de quiz (Notion) + cap. 7 (8 sinais/bandas) + caps 10-13 (viradas/quick-wins).
+  Compliance CFP/CDC: "espelho, não laudo"; sem clínico/cura; recomendação honesta; consentimento LGPD.
+  Placeholders p/ o Ricardo plugar: LINK_AMAZON_LIVRO · LINK_LISTA_ESPERA_ELO · LEAD_WEBHOOK · PIXEL_ID · WHATSAPP_NUM.
+-->
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Diagnóstico do Dono Sobrecarregado · É osso, mas vale a pena</title>
+<meta name="description" content="Em 2 minutos, descubra o tamanho do peso que você carrega como dono e o que fazer com ele.">
+<!-- WhatsApp/redes: preview do link compartilhado -->
+<meta property="og:type" content="website">
+<meta property="og:title" content="Diagnóstico do Dono Sobrecarregado">
+<meta property="og:description" content="Em 2 minutos, descubra o tamanho do peso que você carrega como dono — e o que fazer com ele.">
+<meta name="theme-color" content="#F7F6F4">
+<!-- Fontes por <link> (mais confiável que @import no navegador interno do WhatsApp) -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,900;1,9..144,400&family=Archivo:wght@400;500;600;700;800;900&display=swap">
+<!-- PIXEL META (placeholder): trocar PIXEL_ID e descomentar
+<script>!function(f,b,e,v,n,t,s){...}(window,document,'script','https://connect.facebook.net/en_US/fbevents.js');fbq('init','PIXEL_ID');</script>
+-->
+<style>
+:root{
+  --paper:#F7F6F4;--paper-2:#FFFFFF;--ink:#16181A;--ink-2:#50545A;--line:#E4E1DB;
+  --red:#E10600;--red-deep:#B00400;--steel:#9AA0A6;--charcoal:#15171A;--ok:#1F9D57;--warn:#C77700;
+  --serif:'Fraunces',Georgia,serif;--grotesk:'Archivo',system-ui,sans-serif;--track:.18em;
+  --maxw:640px;--radius:14px;--rule:3px;
+}
+/* fontes carregadas via <link> no <head> — whatsapp-friendly */
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--paper);color:var(--ink);font-family:var(--serif);line-height:1.6;-webkit-font-smoothing:antialiased;min-height:100vh}
+.wrap{max-width:var(--maxw);margin:0 auto;padding:0 22px}
+.kicker{font-family:var(--grotesk);font-weight:700;font-size:.72rem;letter-spacing:var(--track);text-transform:uppercase;color:var(--red)}
+.kicker::before{content:"▸ "}
+.label{font-family:var(--grotesk);font-weight:600;font-size:.7rem;letter-spacing:var(--track);text-transform:uppercase;color:var(--steel)}
+h1{font-family:var(--serif);font-weight:900;font-size:clamp(2rem,6.5vw,3.1rem);line-height:1.02;letter-spacing:-.02em}
+h2{font-family:var(--serif);font-weight:900;font-size:clamp(1.5rem,4.6vw,2.1rem);line-height:1.08;letter-spacing:-.01em}
+h3{font-family:var(--serif);font-weight:900;font-size:1.18rem;line-height:1.15}
+p{font-size:1.08rem;line-height:1.6;color:var(--ink-2);margin:0 0 1em}
+p b,p strong{color:var(--ink)}
+.lead{font-size:1.22rem;color:var(--ink)}
+.strip{width:56px;height:var(--rule);background:var(--red);border-radius:2px;margin:16px 0}
+.muted{color:var(--steel);font-family:var(--grotesk);font-size:.82rem}
+
+/* App shell */
+#app{min-height:100vh;display:flex;flex-direction:column}
+.topbar{position:sticky;top:0;background:var(--paper);border-bottom:1px solid var(--line);z-index:5}
+.topbar .wrap{display:flex;align-items:center;gap:12px;height:54px}
+.brand{font-family:var(--grotesk);font-weight:800;font-size:.8rem;letter-spacing:.04em;color:var(--ink)}
+.brand .r{color:var(--red)}
+.progress{flex:1;height:6px;background:var(--line);border-radius:99px;overflow:hidden}
+.progress>i{display:block;height:100%;width:0;background:var(--red);transition:width .35s ease}
+.pcount{font-family:var(--grotesk);font-weight:700;font-size:.72rem;color:var(--steel);font-variant-numeric:tabular-nums;min-width:42px;text-align:right}
+.screen{flex:1;display:flex;flex-direction:column;justify-content:center;padding:clamp(26px,7vw,60px) 0}
+.back{background:none;border:0;color:var(--steel);font-family:var(--grotesk);font-weight:700;font-size:.82rem;cursor:pointer;padding:8px 0;margin-bottom:10px;display:inline-flex;align-items:center;gap:6px}
+.back:hover{color:var(--ink)}
+.qsub{margin:10px 0 26px;font-size:1.04rem}
+
+/* Options */
+.opts{display:flex;flex-direction:column;gap:12px}
+.opt{display:flex;align-items:center;gap:14px;width:100%;text-align:left;background:var(--paper-2);border:1.5px solid var(--line);border-radius:var(--radius);padding:16px 18px;cursor:pointer;font-family:var(--serif);font-size:1.06rem;color:var(--ink);transition:border-color .15s,transform .05s,box-shadow .15s}
+.opt:hover{border-color:var(--steel)}
+.opt:active{transform:scale(.995)}
+.opt .em{font-size:1.5rem;line-height:1;flex:0 0 auto}
+.opt.sel{border-color:var(--red);box-shadow:0 0 0 3px rgba(225,6,0,.10)}
+.opt .ck{margin-left:auto;width:20px;height:20px;border-radius:50%;border:2px solid var(--line);flex:0 0 auto}
+.opt.sel .ck{border-color:var(--red);background:var(--red) radial-gradient(circle,#fff 28%,transparent 32%)}
+.multi-note{margin:14px 0 0;color:var(--steel);font-family:var(--grotesk);font-size:.8rem}
+
+/* Scale 0-10 */
+.scale{display:grid;grid-template-columns:repeat(11,1fr);gap:6px;margin:8px 0 6px}
+.scale button{aspect-ratio:1;border:1.5px solid var(--line);background:var(--paper-2);border-radius:10px;font-family:var(--grotesk);font-weight:800;color:var(--ink-2);cursor:pointer;font-size:.95rem}
+.scale button:hover{border-color:var(--steel)}
+.scale button.sel{background:var(--red);border-color:var(--red);color:#fff}
+.scale-ends{display:flex;justify-content:space-between;color:var(--steel);font-family:var(--grotesk);font-size:.74rem;margin-bottom:18px}
+
+/* Form */
+.field{margin:0 0 14px}
+.field label{display:block;font-family:var(--grotesk);font-weight:700;font-size:.78rem;color:var(--ink);margin:0 0 6px;letter-spacing:.02em}
+.field input,.field textarea{width:100%;font-family:var(--serif);font-size:1.05rem;color:var(--ink);background:var(--paper-2);border:1.5px solid var(--line);border-radius:10px;padding:13px 14px}
+.field input:focus,.field textarea:focus{outline:none;border-color:var(--red)}
+.field .err{color:var(--red);font-family:var(--grotesk);font-size:.76rem;margin-top:5px;display:none}
+.field.bad input,.field.bad textarea{border-color:var(--red)}
+.field.bad .err{display:block}
+.consent{display:flex;gap:10px;align-items:flex-start;margin:8px 0 20px;font-family:var(--grotesk);font-size:.82rem;color:var(--ink-2)}
+.consent input{margin-top:3px}
+
+/* CTA */
+.cta{display:inline-block;width:100%;text-align:center;font-family:var(--grotesk);font-weight:800;letter-spacing:.02em;background:var(--red);color:#fff;text-decoration:none;border:0;padding:17px 24px;border-radius:12px;cursor:pointer;font-size:1.02rem;transition:background .15s}
+.cta:hover{background:var(--red-deep)}
+.cta.ghost{background:transparent;color:var(--ink);border:1.5px solid var(--line)}
+.cta.ghost:hover{background:var(--paper-2);border-color:var(--steel)}
+.cta[disabled]{opacity:.45;cursor:not-allowed}
+.cta-row{display:flex;flex-direction:column;gap:10px;margin-top:8px}
+
+/* Result */
+.result{padding:clamp(24px,6vw,48px) 0}
+.diagnum{display:flex;align-items:baseline;gap:14px;margin:6px 0 4px}
+.diagnum .big{font-family:var(--grotesk);font-weight:900;font-size:3.4rem;color:var(--red);line-height:1;font-variant-numeric:tabular-nums}
+.gauge{height:12px;border-radius:99px;background:linear-gradient(90deg,#1F9D57,#C77700,#E10600);position:relative;margin:14px 0 6px}
+.gauge>i{position:absolute;top:-5px;width:3px;height:22px;background:var(--ink);border-radius:2px;transform:translateX(-50%)}
+.gauge-ends{display:flex;justify-content:space-between;color:var(--steel);font-family:var(--grotesk);font-size:.74rem}
+.card{background:var(--paper-2);border:1px solid var(--line);border-radius:var(--radius);padding:20px 20px;margin:18px 0}
+.card .label{margin-bottom:8px}
+.beliefs{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:14px 0}
+.beliefs .b{background:var(--paper-2);border:1px solid var(--line);border-radius:12px;padding:14px}
+.beliefs .b .t{font-family:var(--grotesk);font-weight:800;font-size:.7rem;letter-spacing:var(--track);text-transform:uppercase;margin-bottom:6px}
+.beliefs .antes .t{color:var(--steel)}.beliefs .depois .t{color:var(--red)}
+.guide ol{margin:10px 0 0;padding-left:20px}
+.guide li{font-family:var(--serif);color:var(--ink);margin:0 0 9px;line-height:1.5}
+.guide li b{color:var(--ink)}
+.qw{border-left:var(--rule) solid var(--red);background:var(--paper-2);padding:14px 16px;border-radius:0 10px 10px 0;margin:14px 0}
+.win{display:flex;gap:10px;margin:8px 0;align-items:flex-start}
+.win .em{color:var(--red)}
+.foot-note{font-family:var(--grotesk);font-size:.78rem;color:var(--steel);margin-top:22px;border-top:1px solid var(--line);padding-top:16px}
+.deltawrap{display:flex;gap:18px;align-items:center;justify-content:center;margin:10px 0}
+.delta{ text-align:center}
+.delta .n{font-family:var(--grotesk);font-weight:900;font-size:2.6rem;line-height:1;font-variant-numeric:tabular-nums}
+.delta.antes .n{color:var(--steel)}.delta.depois .n{color:var(--ok)}
+.arrow{font-size:1.8rem;color:var(--red)}
+
+/* Admin */
+#admin-view{display:none;padding:30px 0}
+.adm-card{background:var(--paper-2);border:1px solid var(--line);border-radius:12px;padding:16px;margin:12px 0}
+.adm-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px;margin:12px 0}
+.adm-kpi{background:var(--paper-2);border:1px solid var(--line);border-radius:10px;padding:12px}
+.adm-kpi .v{font-family:var(--grotesk);font-weight:900;font-size:1.6rem;color:var(--ink)}
+.adm-kpi .k{font-family:var(--grotesk);font-size:.72rem;color:var(--steel);text-transform:uppercase;letter-spacing:.08em}
+.lead-row{border-top:1px solid var(--line);padding:12px 0;font-family:var(--grotesk);font-size:.86rem}
+.stars{color:var(--red);letter-spacing:2px}
+.wbtn{display:inline-block;background:#25D366;color:#fff;text-decoration:none;font-family:var(--grotesk);font-weight:700;font-size:.78rem;padding:6px 12px;border-radius:8px;margin-top:6px}
+.tag{display:inline-block;font-family:var(--grotesk);font-weight:700;font-size:.68rem;text-transform:uppercase;letter-spacing:.06em;padding:3px 8px;border-radius:6px;background:var(--paper);border:1px solid var(--line);color:var(--ink-2)}
+
+/* Image slot (Kit de Imagens) */
+.imgslot{background:var(--charcoal);border-radius:var(--radius);min-height:150px;display:flex;align-items:center;justify-content:center;color:var(--steel);font-family:var(--grotesk);font-size:.74rem;text-align:center;margin:18px 0;background-size:cover;background-position:center}
+
+/* Stepper (modo comprador) */
+.stepper{display:flex;gap:6px;margin:18px 0 8px;flex-wrap:wrap}
+.stepper .st{flex:1;min-width:130px;display:flex;align-items:center;gap:8px;padding:9px 11px;border:1px solid var(--line);border-radius:10px;background:var(--paper-2);font-family:var(--grotesk);font-size:.74rem;font-weight:600;color:var(--steel)}
+.stepper .st .dot{width:22px;height:22px;border-radius:50%;background:var(--line);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;flex:0 0 auto}
+.stepper .st.on{border-color:var(--red);color:var(--ink)}
+.stepper .st.on .dot{background:var(--red)}
+.stepper .st.done .dot{background:var(--ok)}
+@media (max-width:420px){.scale{grid-template-columns:repeat(6,1fr)}.beliefs{grid-template-columns:1fr}.stepper .st .lbl{display:none}.stepper .st{min-width:0;justify-content:center}}
+
+/* PRINT — só o diagnóstico do lead */
+@media print{
+  .topbar,.back,.cta-row,.cta,.foot-note .noprint,#admin-view,.imgslot{display:none!important}
+  body{background:#fff}
+  .result{padding:0}
+  .card{break-inside:avoid;border:1px solid #ccc}
+  .printhead{display:block!important;border-bottom:2px solid var(--red);padding-bottom:8px;margin-bottom:16px}
+}
+.printhead{display:none}
+</style>
+</head>
+<body>
+<noscript><div style="max-width:600px;margin:40px auto;padding:24px;font-family:Georgia,serif;color:#16181A">Para responder ao diagnóstico, abra este link no seu navegador (no WhatsApp, toque nos três pontinhos → "Abrir no navegador"). Leva 2 minutos.</div></noscript>
+<div id="app">
+  <div class="topbar"><div class="wrap">
+    <span class="brand">É OSSO, MAS VALE A PENA <span class="r">·</span> <span id="modetag" class="muted"></span></span>
+    <div class="progress"><i id="bar"></i></div>
+    <span class="pcount" id="pcount"></span>
+  </div></div>
+  <main id="stage" class="wrap"></main>
+</div>
+
+<!-- ADMIN / CRM mínimo (acesse com #admin) -->
+<div id="admin-view" class="wrap">
+  <span class="kicker">Painel interno</span>
+  <h2>Leads & analytics</h2>
+  <p class="muted">Dados locais (deste navegador) + o que foi enviado ao webhook. Para o time comercial.</p>
+  <div class="adm-grid" id="adm-kpis"></div>
+  <div class="adm-card"><span class="label">Respostas por pergunta-chave (maior desafio)</span><div id="adm-dist"></div></div>
+  <div class="adm-card"><span class="label">Leads capturados</span><div id="adm-leads"></div></div>
+  <button class="cta ghost" onclick="exportLeads()">Exportar leads (CSV)</button>
+</div>
+
+<script>
+"use strict";
+/* ====================== CONFIG (placeholders do Ricardo) ====================== */
+const CFG = {
+  LINK_AMAZON_LIVRO: "[LINK_AMAZON_LIVRO]",       // checkout/PDP do livro na Amazon
+  LINK_LISTA_ESPERA_ELO: "[LINK_LISTA_ESPERA_ELO]", // lista de espera do ELO
+  LEAD_WEBHOOK: "[LEAD_WEBHOOK]",                  // endpoint que recebe o JSON do lead (planilha/CRM/ESP)
+  WHATSAPP_NUM: "[WHATSAPP_NUM]",                  // ex.: 5579999999999 (p/ botão do admin)
+  LINK_PROX_BONUS: "[LINK_PROX_BONUS]",            // (modo comprador) próximo bônus: Caderno de Aplicação
+  LINK_AREA_MEMBROS: "[LINK_AREA_MEMBROS]",        // (modo comprador) voltar à área de membros
+  PIXEL_ON: false
+};
+const _modo = new URLSearchParams(location.search).get("modo");
+const MODE = _modo==="pos" ? "pos" : (_modo==="comprador"||_modo==="bonus") ? "comprador" : "isca";
+
+/* ====================== CONTEÚDO ====================== */
+// As 4 raízes (definidas pela pergunta "maior desafio") → virada/capítulos
+const RAIZ = {
+  delegar:  {emoji:"🪨", nome:"O peso de carregar tudo", virada:"Virada 2 — Soltar sem largar", cap:"capítulo 11"},
+  decidir:  {emoji:"🌪️", nome:"A cabeça que não desliga", virada:"Virada 3 — Decidir sem reagir e descansar sem culpa", cap:"capítulo 12"},
+  enxergar: {emoji:"🌫️", nome:"O peso sem nome", virada:"Virada 1 — Enxergar e nomear o peso", cap:"capítulo 10"},
+  liderar:  {emoji:"👥", nome:"O desgaste de liderar gente", virada:"Liderar pessoas sem se destruir", cap:"capítulo 13"}
+};
+// Diagnóstico por raiz (modulado pela banda no texto de abertura)
+const DIAG = {
+  delegar:"O seu peso tem nome, e ele é controle. Você virou o maior gargalo da própria empresa: tudo passa por você, e por isso nada anda sem você. Carregar assim cansa, mas o que de fato te prende é a sensação de que ninguém faz igual.",
+  decidir:"O seu peso tem nome, e ele é a cabeça que não desliga. Você decide demais no calor da emoção e se arrepende, e quando tenta parar, vem a culpa. O problema não é falta de capacidade. É falta de um intervalo entre o que acontece e o que você decide.",
+  enxergar:"O seu peso ainda não tem nome, e é justamente isso que mais pesa. Você sente que algo está errado, anda sobrecarregado, mas chama de fase ruim, de problema de caixa, de mercado. Enquanto o peso não tem nome, você luta contra o disfarce, nunca contra a causa.",
+  liderar:"O seu peso tem nome, e ele são as pessoas. Motivar, cobrar, mediar conflito, dar feedback, demitir. Liderar gente é das coisas mais bonitas e mais desgastantes que existem, e ninguém te preparou pra isso. Você se esgota menos pelo trabalho e mais por carregar gente."
+};
+const BANDA_INTRO = {
+  controle:"Pela sua resposta, a sua carga ainda está sob controle. Isso é bom, e é a melhor hora de blindar o que funciona antes que a conta cresça.",
+  alerta:"Pela sua resposta, o alerta acendeu. O peso já transbordou da empresa e começou a molhar outras áreas da sua vida.",
+  vermelho:"Pela sua resposta, a sua carga está no vermelho. Você está sustentando muito, sozinho, há tempo demais. E dá pra mudar isso."
+};
+// Quebra de crença (antes → depois) por raiz
+const CRENCA = {
+  delegar:{antes:"Se eu não fizer, ninguém faz igual.", depois:"Diferente de mim não quer dizer pior. Delegar com método me devolve a semana."},
+  decidir:{antes:"Decisão boa é decisão rápida, na hora.", depois:"Decisão boa é a que eu tomo fora do calor do momento. Descansar é manutenção, não preguiça."},
+  enxergar:{antes:"O meu problema é financeiro / é o mercado / é a equipe.", depois:"O meu problema tem uma raiz só. Quando eu dou nome a ela, metade do peso já sai."},
+  liderar:{antes:"Bom líder é o que carrega o time nas costas.", depois:"Bom líder cria condições pra que as pessoas andem sozinhas, e até me surpreendam."}
+};
+// Guia de leitura por raiz
+const GUIA = {
+  delegar:["<b>Parte I (caps 1 a 5)</b> pra você me conhecer e confiar em quem está falando.","Vá direto à sua virada: <b>capítulo 11, a Virada 2</b> (a história da minha filha Carol). É a sua.","Depois o <b>capítulo 13</b>, liderar pessoas sem se destruir.","Feche com a <b>Parte V (caps 17 a 19)</b> e monte o seu plano."],
+  decidir:["<b>Parte I (caps 1 a 5)</b> pra você me conhecer. O <b>capítulo 4</b> (a pancreatite) vai te tocar.","A sua virada é a <b>3, capítulo 12</b>: decidir sem reagir e descansar sem culpa.","O <b>capítulo 8</b> (a solidão no topo) explica de onde vem o seu cansaço.","Feche com a <b>Parte V (caps 17 a 19)</b>."],
+  enxergar:["<b>Parte I (caps 1 a 5)</b> pra você me conhecer.","A <b>Parte II (caps 6 a 9)</b> é a sua casa agora: é onde a gente dá nome ao peso.","A sua virada é a <b>1, capítulo 10</b>: enxergar e nomear o peso.","Feche com a <b>Parte V (caps 17 a 19)</b>."],
+  liderar:["<b>Parte I (caps 1 a 5)</b> pra você me conhecer.","A sua raiz está no <b>capítulo 13</b> (liderar pessoas) e na <b>Virada 2, capítulo 11</b> (formar gente que anda sozinha).","O <b>capítulo 12</b> te ajuda a não levar o conflito dos outros pro seu emocional.","Feche com a <b>Parte V (caps 17 a 19)</b>."]
+};
+const QUICKWIN = {
+  delegar:"Hoje, liste no papel 3 coisas que só você faz na empresa. Circule a que, se sumisse da sua semana, te devolveria mais paz. Defina quem vai receber e em que dia você ensina. Essa é a primeira que você delega.",
+  decidir:"Hoje, pegue a decisão que está te tirando o sono e marque a hora de decidir, fora do calor do momento. E reserve 10 minutos só seus, sem celular. Só isso já muda o seu dia.",
+  enxergar:"Hoje, complete esta frase no papel: \"Por fora eu mostro ___. Por dentro, o que pesa de verdade é ___.\" Dar nome ao peso já tira metade dele.",
+  liderar:"Hoje, escolha uma conversa difícil que você vem adiando com alguém da equipe, e marque ela pra esta semana. Com clareza e respeito, sem humilhar."
+};
+const VITORIAS = ["Parar de sentir culpa toda vez que descansa.","Uma equipe que decide sem te consultar a cada passo.","Dormir sem levar a empresa pra cama.","Voltar a ter prazer no que você construiu."];
+
+/* ====================== PERGUNTAS ====================== */
+const Q_ISCA = [
+  {id:"intro",type:"intro"},
+  {id:"icp",type:"single",kicker:"Pergunta 1 de 9",title:"Pra começar: você é dono de empresa?",
+    options:[
+      {em:"👑",label:"Sou dono / fundador",val:"dono"},
+      {em:"🤝",label:"Sou sócio",val:"socio"},
+      {em:"🧭",label:"Sou gestor ou líder (não sou dono)",val:"gestor"},
+      {em:"🌱",label:"Ainda não tenho empresa",val:"nao_tenho"}
+    ]},
+  {id:"size",type:"single",kicker:"Pergunta 2 de 9",title:"Quantas pessoas trabalham com você hoje?",
+    options:[
+      {em:"🙋",label:"Só eu por enquanto",val:"1"},
+      {em:"👥",label:"De 2 a 9",val:"2-9"},
+      {em:"🏢",label:"De 10 a 49",val:"10-49"},
+      {em:"🏭",label:"50 ou mais",val:"50+"}
+    ]},
+  {id:"rel",type:"single",kicker:"Pergunta 3 de 9",title:"Como você descreveria a sua relação com a empresa hoje?",
+    options:[
+      {em:"😌",label:"Tenho controle e ainda me sobra tempo",val:"controle"},
+      {em:"😮‍💨",label:"No limite, mas segurando",val:"limite"},
+      {em:"⛓️",label:"Sinto que sou escravo dela",val:"escravo"}
+    ]},
+  {id:"raiz",type:"single",kicker:"Pergunta 4 de 9 · a principal",title:"Qual é o seu maior peso como dono agora?",sub:"Escolha o que mais aperta. É esta resposta que monta o seu diagnóstico.",
+    options:[
+      {em:"🪨",label:"Carrego tudo sozinho, não consigo delegar nem confiar",val:"delegar"},
+      {em:"🌪️",label:"Decido no impulso e me arrependo, e não consigo descansar",val:"decidir"},
+      {em:"🌫️",label:"Sei que algo pesa, mas não consigo nem nomear o quê",val:"enxergar"},
+      {em:"👥",label:"O que me consome é liderar as pessoas",val:"liderar"}
+    ]},
+  {id:"sinais",type:"multi",kicker:"Pergunta 5 de 9",title:"Quais destes você sentiu nas últimas semanas?",sub:"Marque todos os que descrevem você. Sem certo nem errado, só a verdade.",
+    options:[
+      {em:"😤",label:"Irritação constante, sem motivo claro",val:"s1"},
+      {em:"⏱️",label:"Falta de paciência com equipe, clientes e família",val:"s2"},
+      {em:"😔",label:"Culpa quando tento descansar",val:"s3"},
+      {em:"😟",label:"Ansiedade sobre o futuro da empresa",val:"s4"},
+      {em:"🌙",label:"Insônia ou sono agitado pensando no negócio",val:"s5"},
+      {em:"⚠️",label:"Medo de que tudo desande de repente",val:"s6"},
+      {em:"🫥",label:"Perdi a alegria de empreender",val:"s7"},
+      {em:"🤐",label:"Dificuldade de delegar e confiar",val:"s8"}
+    ]},
+  {id:"tentou",type:"single",kicker:"Pergunta 6 de 9",title:"O quanto você já tentou resolver isso?",
+    options:[
+      {em:"🆕",label:"Nunca parei de verdade pra olhar",val:"nunca"},
+      {em:"🔁",label:"Já li e tentei, mas não consegui sustentar",val:"tentou"},
+      {em:"🛠️",label:"Já estou trabalhando nisso ativamente",val:"trabalhando"}
+    ]},
+  {id:"crenca",type:"single",kicker:"Pergunta 7 de 9",title:"O que você acha que mais trava o crescimento de um dono?",sub:"Responda no impulso.",
+    options:[
+      {em:"📉",label:"O mercado e a economia",val:"externo"},
+      {em:"💸",label:"A falta de dinheiro / capital",val:"dinheiro"},
+      {em:"🪞",label:"Eu mesmo, do jeito que eu lidero",val:"eu"}
+    ]},
+  {id:"livro",type:"single",kicker:"Pergunta 8 de 9",title:"E sobre o livro \"É osso, mas vale a pena\"?",
+    options:[
+      {em:"❓",label:"Ainda não conhecia",val:"nao_conhece"},
+      {em:"👀",label:"Quero ler",val:"quer"},
+      {em:"📖",label:"Já estou lendo",val:"lendo"},
+      {em:"✅",label:"Já li",val:"leu"}
+    ]},
+  {id:"disp",type:"scale",kicker:"Pergunta 9 de 9",title:"De 0 a 10, o quanto você está disposto a se aperfeiçoar como líder agora?",sub:"0 = não é a minha prioridade hoje · 10 = topo qualquer trabalho que for preciso.",ends:["Não agora","Topo tudo"]},
+  {id:"capture",type:"capture"},
+  {id:"result",type:"result"}
+];
+
+const Q_POS = [
+  {id:"intro",type:"intro"},
+  {id:"concluiu",type:"single",kicker:"Antes e depois",title:"Você concluiu a leitura de \"É osso, mas vale a pena\"?",
+    options:[
+      {em:"✅",label:"Terminei o livro",val:"sim"},
+      {em:"📖",label:"Estou quase lá",val:"quase"},
+      {em:"🔖",label:"Li só uma parte",val:"parte"}
+    ]},
+  {id:"antes",type:"single",kicker:"O ponto de partida",title:"Quando você COMEÇOU o livro, quantos dos 8 sinais de sobrecarga você marcava?",sub:"No capítulo 7 eu pedi pra você anotar esse número. Se não lembra exato, escolha o mais próximo.",
+    options:[
+      {em:"🟢",label:"De 0 a 2 (estava sob controle)",val:"1"},
+      {em:"🟡",label:"De 3 a 5 (em alerta)",val:"4"},
+      {em:"🔴",label:"De 6 a 8 (no vermelho)",val:"7"},
+      {em:"🤷",label:"Não lembro / não anotei",val:"x"}
+    ]},
+  {id:"rel",type:"single",kicker:"Hoje",title:"E HOJE, como está a sua relação com a empresa?",
+    options:[
+      {em:"😌",label:"Tenho controle e me sobra tempo",val:"controle"},
+      {em:"😮‍💨",label:"Melhor, mas ainda no limite",val:"limite"},
+      {em:"⛓️",label:"Ainda me sinto escravo dela",val:"escravo"}
+    ]},
+  {id:"sinais",type:"multi",kicker:"Termômetro de hoje",title:"Quais destes você ainda sente nas últimas semanas?",sub:"Marque os que continuam. A diferença pro começo é a sua prova de avanço.",
+    options:[
+      {em:"😤",label:"Irritação constante",val:"s1"},
+      {em:"⏱️",label:"Falta de paciência",val:"s2"},
+      {em:"😔",label:"Culpa ao descansar",val:"s3"},
+      {em:"😟",label:"Ansiedade sobre o futuro",val:"s4"},
+      {em:"🌙",label:"Insônia pensando no negócio",val:"s5"},
+      {em:"⚠️",label:"Medo de que tudo desande",val:"s6"},
+      {em:"🫥",label:"Falta de alegria de empreender",val:"s7"},
+      {em:"🤐",label:"Dificuldade de delegar",val:"s8"}
+    ]},
+  {id:"aplicou",type:"single",kicker:"Aplicação",title:"Qual virada do livro você mais colocou em prática?",
+    options:[
+      {em:"🌫️",label:"Enxergar e nomear o peso (Virada 1)",val:"enxergar"},
+      {em:"🪨",label:"Soltar sem largar / delegar (Virada 2)",val:"delegar"},
+      {em:"🌪️",label:"Decidir sem reagir e descansar (Virada 3)",val:"decidir"},
+      {em:"👥",label:"Liderar pessoas sem me destruir",val:"liderar"}
+    ]},
+  {id:"disp",type:"scale",kicker:"Disposição",title:"De 0 a 10, o quanto você quer ir mais fundo nessa transformação agora?",ends:["Tô bem assim","Quero o próximo passo"]},
+  {id:"depo",type:"text",kicker:"Sua história",title:"Em 2 ou 3 linhas: o que mudou na sua liderança ou na sua vida depois do livro?",sub:"Com a sua autorização, ela pode dar coragem pra outro dono. (Opcional, mas faz diferença.)",placeholder:"Ex.: deleguei o financeiro, voltei a dormir, e tirei meu primeiro fim de semana em anos..."},
+  {id:"capture",type:"capture"},
+  {id:"result",type:"result"}
+];
+
+// Versão-comprador (Bônus 1): mesmo diagnóstico, reusa as opções da Isca, sem CTA de compra.
+const _byId = id => Q_ISCA.find(q=>q.id===id);
+const Q_COMPRADOR = [
+  {id:"intro",type:"intro"},
+  {..._byId("rel"),    kicker:"Autodiagnóstico · 1 de 6"},
+  {..._byId("raiz"),   kicker:"Autodiagnóstico · 2 de 6 · a principal"},
+  {..._byId("sinais"), kicker:"Autodiagnóstico · 3 de 6"},
+  {..._byId("icp"),    kicker:"Autodiagnóstico · 4 de 6"},
+  {..._byId("size"),   kicker:"Autodiagnóstico · 5 de 6"},
+  {..._byId("disp"),   kicker:"Autodiagnóstico · 6 de 6"},
+  {id:"capture",type:"capture"},
+  {id:"result",type:"result"}
+];
+const STEPS = MODE==="pos" ? Q_POS : MODE==="comprador" ? Q_COMPRADOR : Q_ISCA;
+
+/* ====================== ESTADO + ENGINE ====================== */
+let idx = 0;
+const A = {};               // respostas
+const startedAt = nowISO();
+bumpStat("acessos");
+pixel("InitiateCheckout","quiz_start");
+
+function nowISO(){ try{return new Date().toISOString();}catch(e){return "";} }
+const stage = document.getElementById("stage");
+document.getElementById("modetag").textContent = MODE==="pos" ? "antes & depois" : MODE==="comprador" ? "bônus 1" : "diagnóstico";
+
+if(location.hash === "#admin"){ showAdmin(); } else { render(); }
+window.addEventListener("hashchange",()=>{ if(location.hash==="#admin") showAdmin(); else location.reload(); });
+
+function progress(){
+  const total = STEPS.length - 1; // sem contar result como passo "respondível"
+  const pct = Math.min(100, Math.round((idx/total)*100));
+  document.getElementById("bar").style.width = pct+"%";
+  const qSteps = STEPS.filter(s=>["single","multi","scale","text"].includes(s.type)).length;
+  const done = STEPS.slice(0,idx).filter(s=>["single","multi","scale","text"].includes(s.type)).length;
+  document.getElementById("pcount").textContent = (idx>0 && idx<STEPS.length-1 && done<=qSteps) ? (done)+"/"+qSteps : "";
+}
+
+function render(){
+  const s = STEPS[idx];
+  progress();
+  if(s.type==="intro") return renderIntro();
+  if(s.type==="capture") return renderCapture();
+  if(s.type==="result") return renderResult();
+  // pergunta
+  let h = `<div class="screen">`;
+  if(idx>1) h += `<button class="back" onclick="go(-1)">◂ voltar</button>`;
+  h += `<span class="kicker">${s.kicker||""}</span>`;
+  h += `<h2 style="margin-top:8px">${s.title}</h2>`;
+  if(s.sub) h += `<p class="qsub">${s.sub}</p>`; else h += `<div style="height:18px"></div>`;
+  if(s.type==="single"){
+    h += `<div class="opts">` + s.options.map((o,i)=>
+      `<button class="opt" data-i="${i}" onclick="pick('${s.id}','${o.val}',this)"><span class="em">${o.em}</span><span>${o.label}</span><span class="ck"></span></button>`).join("") + `</div>`;
+  } else if(s.type==="multi"){
+    h += `<div class="opts" id="multi">` + s.options.map((o,i)=>
+      `<button class="opt" data-v="${o.val}" onclick="toggleMulti(this)"><span class="em">${o.em}</span><span>${o.label}</span><span class="ck"></span></button>`).join("") + `</div>`;
+    h += `<div class="multi-note">Pode marcar quantos quiser. Se não sentiu nenhum, siga em frente.</div>`;
+    h += `<div class="cta-row"><button class="cta" onclick="submitMulti('${s.id}')">Continuar ▸</button></div>`;
+  } else if(s.type==="scale"){
+    h += `<div class="scale" id="scale">`+Array.from({length:11},(_,n)=>`<button onclick="pickScale('${s.id}',${n},this)">${n}</button>`).join("")+`</div>`;
+    h += `<div class="scale-ends"><span>${s.ends[0]}</span><span>${s.ends[1]}</span></div>`;
+  } else if(s.type==="text"){
+    h += `<div class="field"><textarea id="txt" rows="4" placeholder="${s.placeholder||""}"></textarea></div>`;
+    h += `<div class="cta-row"><button class="cta" onclick="submitText('${s.id}')">Continuar ▸</button><button class="cta ghost" onclick="A['${s.id}']='';go(1)">Pular</button></div>`;
+  }
+  h += `</div>`;
+  stage.innerHTML = h;
+}
+
+function stepper(active){
+  const steps=["Autodiagnóstico","Caderno de Aplicação","Checklist de Delegação","Plano de Virada"];
+  return `<div class="stepper">`+steps.map((s,i)=>`<div class="st ${i+1===active?"on":""}${i+1<active?" done":""}"><span class="dot">${i+1}</span><span class="lbl">${s}</span></div>`).join("")+`</div>`;
+}
+function renderIntro(){
+  if(MODE==="comprador"){
+    stage.innerHTML = `<div class="screen">
+      <span class="kicker">Bônus 1 do seu kit</span>
+      <h1 style="margin-top:12px">O seu autodiagnóstico</h1>
+      <div class="strip"></div>
+      ${stepper(1)}
+      <p class="lead">Você já tem o livro. Comece pelo espelho: em 2 minutos eu te mostro o tamanho do peso que você carrega e por onde a sua leitura rende mais.</p>
+      <div class="cta-row"><button class="cta" onclick="go(1)">Fazer meu autodiagnóstico ▸</button></div>
+      <p class="muted" style="margin-top:14px">É o passo 1 do seu caminho de bônus. Um espelho honesto, não um laudo.</p>
+    </div>`;
+    return;
+  }
+  const isca = MODE!=="pos";
+  stage.innerHTML = `<div class="screen">
+    <span class="kicker">${isca?"Diagnóstico · 2 minutos":"Antes e depois · pra quem leu"}</span>
+    <h1 style="margin-top:12px">${isca?"Quanto pesa, de verdade, ser o dono?":"O que mudou em você depois do livro?"}</h1>
+    <div class="strip"></div>
+    <p class="lead">${isca
+      ? "Se você é dono ou sócio e sente que decide e sustenta tudo sozinho, responda 9 perguntas e eu te mostro o tamanho do peso que você carrega, e o que fazer com ele."
+      : "Você chegou ao fim de \"É osso, mas vale a pena\". Vamos medir, lado a lado, como você começou e como está agora, e qual é o seu próximo passo."}</p>
+    <div class="imgslot" data-kit="hero">[ IMAGEM HERO — ver Kit de Imagens no SPEC ]</div>
+    <div class="cta-row">
+      <button class="cta" onclick="go(1)">${isca?"Descobrir meu diagnóstico ▸":"Ver o meu antes e depois ▸"}</button>
+    </div>
+    <p class="muted" style="margin-top:14px">É um espelho honesto, não um laudo. Leva 2 minutos. ${isca?"No fim, eu digo se este livro é mesmo pra você agora.":""}</p>
+  </div>`;
+}
+
+/* ---- handlers ---- */
+function pick(id,val,el){ A[id]=val; markPicked(el); bumpStat("resp_"+id+"_"+val); setTimeout(()=>go(1),180); }
+function markPicked(el){ [...el.parentNode.children].forEach(c=>c.classList.remove("sel")); el.classList.add("sel"); }
+function toggleMulti(el){ el.classList.toggle("sel"); }
+function submitMulti(id){ A[id]=[...document.querySelectorAll("#multi .opt.sel")].map(e=>e.dataset.v); go(1); }
+function pickScale(id,n,el){ A[id]=n; [...el.parentNode.children].forEach(c=>c.classList.remove("sel")); el.classList.add("sel"); setTimeout(()=>go(1),180); }
+function submitText(id){ A[id]=(document.getElementById("txt").value||"").trim(); go(1); }
+function go(d){ idx=Math.max(0,Math.min(STEPS.length-1,idx+d)); window.scrollTo(0,0); render(); }
+
+/* ---- captura ---- */
+function renderCapture(){
+  const isca = MODE!=="pos";
+  stage.innerHTML = `<div class="screen">
+    <button class="back" onclick="go(-1)">◂ voltar</button>
+    <span class="kicker">Quase lá</span>
+    <h2 style="margin-top:8px">${isca?"Seu diagnóstico está pronto.":"Seu antes e depois está pronto."}</h2>
+    <p class="qsub">Pra onde eu envio? Sem spam. É só pra te entregar o resultado e, se fizer sentido, te acompanhar.</p>
+    <div class="field"><label>Seu nome</label><input id="f_nome" autocomplete="name"><div class="err">Diz o seu nome.</div></div>
+    <div class="field"><label>E-mail</label><input id="f_email" type="email" autocomplete="email"><div class="err">E-mail inválido.</div></div>
+    <div class="field"><label>WhatsApp (com DDD)</label><input id="f_wpp" inputmode="tel" placeholder="(79) 9 9999-9999"><div class="err">Coloca um WhatsApp válido.</div></div>
+    <div class="field"><label>Instagram <span class="muted">(opcional)</span></label><input id="f_insta" placeholder="@seuusuario"></div>
+    <label class="consent"><input type="checkbox" id="f_lgpd"><span>Autorizo o contato da equipe do Jâmisson Ferreira por e-mail/WhatsApp e o uso dos meus dados conforme a política de privacidade (LGPD).</span></label>
+    <div class="cta-row"><button class="cta" onclick="finishCapture()">${isca?"Ver meu diagnóstico ▸":"Ver meu resultado ▸"}</button></div>
+  </div>`;
+}
+function finishCapture(){
+  const nome=val("f_nome"), email=val("f_email"), wpp=val("f_wpp"), insta=val("f_insta"), lgpd=document.getElementById("f_lgpd").checked;
+  let ok=true;
+  ok = setErr("f_nome", nome.length>=2) && ok;
+  ok = setErr("f_email", /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) && ok;
+  ok = setErr("f_wpp", wpp.replace(/\D/g,"").length>=10) && ok;
+  if(!lgpd){ alert("Marque o consentimento para receber o resultado."); ok=false; }
+  if(!ok) return;
+  A.contato={nome,email,wpp,insta,lgpd:true};
+  bumpStat("leads"); pixel("Lead","lead_capture");
+  go(1);
+}
+function val(id){ return (document.getElementById(id).value||"").trim(); }
+function setErr(id,good){ document.getElementById(id).parentNode.classList.toggle("bad",!good); return good; }
+
+/* ====================== PERFIL + SCORE ====================== */
+function profile(){
+  const sinais = Array.isArray(A.sinais)? A.sinais.length : 0;
+  let band = sinais<=2?"controle": sinais<=5?"alerta":"vermelho";
+  // relação como reforço da banda
+  if(A.rel==="escravo" && band==="controle") band="alerta";
+  const current = Math.max(1, Math.round(9 - (sinais/8)*7)); // 0 sinais→9, 8→2
+  const raiz = A.raiz || A.aplicou || "enxergar";
+  const willing = (typeof A.disp==="number")? A.disp : 5;
+  return {
+    raiz, band, sinais, current, willing,
+    icp:A.icp||"", size:A.size||"", rel:A.rel||"", tentou:A.tentou||"", crenca:A.crenca||"", livro:A.livro||"",
+    antes: A.antes && A.antes!=="x" ? parseInt(A.antes,10) : null,
+    depo: A.depo||""
+  };
+}
+function stars(p){
+  let s=0;
+  var _icp=({dono:25,socio:20,gestor:10,nao_tenho:0})[p.icp]; s += (_icp===undefined?(MODE==="pos"?22:8):_icp);
+  s += ({vermelho:20,alerta:15,controle:8})[p.band] || 12;
+  s += ({trabalhando:15,tentou:12,nunca:6})[p.tentou] || (MODE==="pos"?14:8);
+  s += Math.round((p.willing||5)*2);                 // disposição 0-10 → 0-20
+  s += ({"50+":15,"10-49":12,"2-9":6,"1":2})[p.size] || (MODE==="pos"?8:6);
+  if(p.livro==="leu"||p.livro==="lendo"||MODE==="pos") s+=10; // alvo ELO
+  s += 5;                                             // concluiu o quiz
+  if(p.crenca==="eu") s+=5;                           // mentalidade de responsabilidade
+  const star = s>=80?5 : s>=65?4 : s>=45?3 : s>=30?2 : 1;
+  return {score:s, star};
+}
+function action(p,st){
+  if(MODE==="comprador") return "Acompanhar leitura + ofertar ELO (cliente)";
+  if(MODE==="pos") return "Vender ELO + colher depoimento/indicação";
+  if(p.livro==="leu"||p.livro==="lendo") return "Vender ELO + acompanhar leitura";
+  if(p.size==="10-49"||p.size==="50+") return "Corporativo (lote + palestra) + livro";
+  if(p.willing<=3 || st.star<=2) return "Nutrir (lead frio)";
+  return "Vender o livro";
+}
+function recommend(p){
+  if(p.willing<=3) return {rec:false, txt:"Vou ser honesto com você, porque o livro inteiro é honesto. Ele só funciona pra quem está disposto a se olhar de verdade. Pela sua resposta, talvez agora não seja a sua hora, e tudo bem. Quando for, ele vai estar aqui te esperando."};
+  if(p.icp==="nao_tenho") return {rec:true, soft:true, txt:"O livro fala da pele de quem já carrega uma empresa. Se você está começando, ele vai te preparar pra não cair nos buracos que eu caí. Leia com calma, no seu tempo."};
+  if(p.band==="controle" && p.willing<7) return {rec:true, soft:true, txt:"Você está num bom momento, e essa é justamente a melhor hora de blindar o que funciona. O livro vai te ajudar a manter o controle sem virar escravo lá na frente. Sem pressa, mas vale a leitura."};
+  return {rec:true, soft:false, txt:"Sim. Este livro é pra você, e é pra agora. O que você acabou de descrever é exatamente a dor que ele trata, da pele de quem viveu e saiu do outro lado."};
+}
+
+/* ====================== RESULTADO ====================== */
+function renderResult(){
+  const p=profile(); const st=stars(p);
+  saveLead(p,st);
+  pixel("ViewContent","result_view");
+  if(MODE==="pos") return renderResultPos(p,st);
+  if(MODE==="comprador") return renderResultComprador(p,st);
+  const r=RAIZ[p.raiz]||RAIZ.enxergar; const rec=recommend(p);
+  const nome = (A.contato&&A.contato.nome)? A.contato.nome.split(" ")[0] : "";
+  let h=`<div class="result">
+    <div class="printhead"><span class="kicker">Diagnóstico do Dono Sobrecarregado</span><h2>${r.emoji} ${r.nome}</h2></div>
+    <span class="kicker">${nome?nome+", ":""}seu diagnóstico</span>
+    <h1 style="margin-top:8px">${r.emoji} ${r.nome}</h1>
+    <div class="strip"></div>
+    <p class="lead">${BANDA_INTRO[p.band]}</p>
+    <p>${DIAG[p.raiz]||""}</p>
+
+    <div class="card">
+      <span class="label">Seu nível hoje</span>
+      <div class="diagnum"><span class="big">${p.current}</span><span>de 10 · o seu potencial é 9+</span></div>
+      <div class="gauge"><i style="left:${(p.current/10)*100}%"></i></div>
+      <div class="gauge-ends"><span>sobrecarregado</span><span>dono livre</span></div>
+    </div>
+
+    <div class="beliefs">
+      <div class="b antes"><div class="t">Antes</div>${CRENCA[p.raiz].antes}</div>
+      <div class="b depois"><div class="t">Depois do livro</div>${CRENCA[p.raiz].depois}</div>
+    </div>
+
+    <h3 style="margin-top:24px">${rec.rec? (rec.soft?"Vale a leitura":"Recomendação: leia este livro"):"Talvez não seja a sua hora"}</h3>
+    <p>${rec.txt}</p>`;
+
+  if(rec.rec){
+    h+=`<div class="card guide">
+      <span class="label">Seu guia de leitura personalizado</span>
+      <p style="margin:6px 0 0">A sua raiz é <b>${r.virada}</b> (${r.cap}). Leia nesta ordem pra aproveitar mais:</p>
+      <ol>${GUIA[p.raiz].map(li=>`<li>${li}</li>`).join("")}</ol>
+    </div>
+    <div class="qw"><span class="label" style="color:var(--red)">Comece hoje, antes mesmo do livro</span><p style="margin:8px 0 0">${QUICKWIN[p.raiz]}</p></div>
+    <h3 style="margin-top:22px">O que muda quando você lê</h3>
+    ${VITORIAS.map(v=>`<div class="win"><span class="em">▸</span><span>${v}</span></div>`).join("")}
+    <div class="cta-row" style="margin-top:24px">
+      <a class="cta" href="${CFG.LINK_AMAZON_LIVRO}" target="_blank" rel="noopener" onclick="pixel('AddToCart','cta_amazon')">Garantir meu exemplar na Amazon ▸</a>
+      <button class="cta ghost noprint" onclick="window.print()">Salvar meu diagnóstico (PDF) ⤓</button>
+    </div>`;
+  } else {
+    h+=`<div class="cta-row" style="margin-top:20px"><button class="cta ghost noprint" onclick="window.print()">Salvar meu diagnóstico (PDF) ⤓</button></div>`;
+  }
+  h+=`<p class="foot-note">Este diagnóstico é um espelho da sua percepção, não um laudo clínico. O Jâmisson não é médico nem psicólogo, e este material é de liderança e gestão, não de saúde. Se os sinais físicos forem fortes e persistentes, procure um profissional. <span class="noprint">© UniJam · Jâmisson Ferreira</span></p>
+  </div>`;
+  stage.innerHTML=h;
+}
+
+function renderResultPos(p,st){
+  const r=RAIZ[p.raiz]||RAIZ.enxergar;
+  const nome=(A.contato&&A.contato.nome)?A.contato.nome.split(" ")[0]:"";
+  const antes = p.antes!==null? p.antes : null;
+  const depois = p.sinais;
+  const melhorou = (antes!==null) ? (antes - depois) : null;
+  let h=`<div class="result">
+    <div class="printhead"><span class="kicker">Meu antes e depois · É osso, mas vale a pena</span></div>
+    <span class="kicker">${nome?nome+", ":""}o que mudou em você</span>
+    <h1 style="margin-top:8px">A sua virada, em números</h1>
+    <div class="strip"></div>`;
+  if(antes!==null){
+    h+=`<div class="card"><span class="label">Sinais de sobrecarga</span>
+      <div class="deltawrap">
+        <div class="delta antes"><div class="n">${antes}</div><div class="muted">quando começou</div></div>
+        <div class="arrow">▸</div>
+        <div class="delta depois"><div class="n">${depois}</div><div class="muted">hoje</div></div>
+      </div>
+      <p style="text-align:center;margin:6px 0 0">${melhorou>0?("<b>Você soltou "+melhorou+" peso"+(melhorou>1?"s":"")+" pelo caminho.</b> Isso não é sorte. É instrução cumprida."):melhorou===0?"Você se manteve firme. Agora é hora de ir mais fundo.":"O número subiu, e tudo bem ter percebido. O próximo passo existe pra isso."}</p>
+    </div>`;
+  }
+  h+=`<p class="lead">Você aplicou principalmente a <b>${r.virada}</b>. ${depois<=2?"A sua carga hoje está sob controle.":depois<=5?"Você saiu do vermelho e está no caminho.":"Ainda pesa, e por isso o próximo passo importa tanto."}</p>`;
+  if(p.depo){ h+=`<div class="card"><span class="label">O que você nos contou</span><p style="margin:6px 0 0;font-style:italic">“${p.depo}”</p><p class="muted" style="margin-top:8px">Obrigado. Com a sua autorização, a sua história vai dar coragem pra outro dono.</p></div>`; }
+  h+=`<h3 style="margin-top:22px">O seu próximo degrau é o ELO</h3>
+    <p>O livro foi a leitura. O <b>ELO</b> é a experiência: onde você vive, com método e com outros donos, a virada mais funda. Como você já fez o caminho do livro, faz sentido você conhecer.</p>
+    <div class="cta-row" style="margin-top:8px">
+      <a class="cta" href="${CFG.LINK_LISTA_ESPERA_ELO}" target="_blank" rel="noopener" onclick="pixel('Lead','cta_elo')">Entrar na lista de espera do ELO ▸</a>
+      <a class="cta ghost" href="${waLink(indicacaoMsg(nome))}" target="_blank" rel="noopener">Indicar um amigo dono ▸</a>
+      <button class="cta ghost noprint" onclick="window.print()">Salvar meu antes e depois (PDF) ⤓</button>
+    </div>
+    <p class="foot-note">Espelho da sua percepção, não laudo clínico. Material de liderança, não de saúde. <span class="noprint">© UniJam · Jâmisson Ferreira</span></p>
+  </div>`;
+  stage.innerHTML=h;
+}
+
+function renderResultComprador(p,st){
+  const r=RAIZ[p.raiz]||RAIZ.enxergar;
+  const nome=(A.contato&&A.contato.nome)?A.contato.nome.split(" ")[0]:"";
+  stage.innerHTML=`<div class="result">
+    <div class="printhead"><span class="kicker">Bônus 1 · Autodiagnóstico</span><h2>${r.emoji} ${r.nome}</h2></div>
+    <span class="kicker">${nome?nome+", ":""}seu diagnóstico</span>
+    <h1 style="margin-top:8px">${r.emoji} ${r.nome}</h1>
+    <div class="strip"></div>
+    <p class="lead">${BANDA_INTRO[p.band]}</p>
+    <p>${DIAG[p.raiz]||""}</p>
+    <div class="card">
+      <span class="label">Seu nível hoje</span>
+      <div class="diagnum"><span class="big">${p.current}</span><span>de 10 · o seu potencial é 9+</span></div>
+      <div class="gauge"><i style="left:${(p.current/10)*100}%"></i></div>
+      <div class="gauge-ends"><span>sobrecarregado</span><span>dono livre</span></div>
+    </div>
+    <div class="beliefs">
+      <div class="b antes"><div class="t">Antes</div>${CRENCA[p.raiz].antes}</div>
+      <div class="b depois"><div class="t">Depois do livro</div>${CRENCA[p.raiz].depois}</div>
+    </div>
+    <div class="card guide">
+      <span class="label">Por onde a sua leitura rende mais</span>
+      <p style="margin:6px 0 0">A sua raiz é <b>${r.virada}</b> (${r.cap}). Leia nesta ordem:</p>
+      <ol>${GUIA[p.raiz].map(li=>`<li>${li}</li>`).join("")}</ol>
+    </div>
+    <div class="qw"><span class="label" style="color:var(--red)">Comece hoje</span><p style="margin:8px 0 0">${QUICKWIN[p.raiz]}</p></div>
+    <h3 style="margin-top:24px">Próximo passo do seu kit</h3>
+    ${stepper(2)}
+    <p>Com o seu peso já diagnosticado, o próximo bônus é o <b>Caderno de Aplicação</b>, pra transformar a leitura em ação, um dia de cada vez.</p>
+    <div class="cta-row" style="margin-top:8px">
+      <a class="cta" href="${CFG.LINK_PROX_BONUS}" onclick="pixel('ViewContent','prox_bonus')">Ir para o Bônus 2 · Caderno de Aplicação ▸</a>
+      <a class="cta ghost" href="${CFG.LINK_AREA_MEMBROS}">Voltar à área de membros</a>
+      <button class="cta ghost noprint" onclick="window.print()">Salvar meu diagnóstico (PDF) ⤓</button>
+    </div>
+    <p class="foot-note">Espelho da sua percepção, não laudo clínico. Material de liderança, não de saúde. <span class="noprint">© UniJam · Jâmisson Ferreira</span></p>
+  </div>`;
+}
+
+/* ====================== LEAD / ENVIO / ADMIN ====================== */
+function saveLead(p,st){
+  if(A._saved) return; A._saved=true;
+  const rec = {
+    modo:MODE, data:nowISO(), inicio:startedAt,
+    contato:A.contato||{}, respostas:A,
+    perfil:{raiz:p.raiz, raizNome:(RAIZ[p.raiz]||{}).nome, banda:p.band, sinais:p.sinais, nivel:p.current, disposicao:p.willing,
+            icp:p.icp, tamanho:p.size, relacao:p.rel, jaTentou:p.tentou, crenca:p.crenca, relacaoLivro:p.livro,
+            antes:p.antes, depoimento:p.depo},
+    estrelas:st.star, score:st.score, acao:action(p,st)
+  };
+  // localStorage (admin/CRM mínimo)
+  try{ const all=JSON.parse(localStorage.getItem("unijam_leads")||"[]"); all.push(rec); localStorage.setItem("unijam_leads",JSON.stringify(all));
+       localStorage.setItem("unijam_quiz_isca",JSON.stringify({date:rec.data,sinais:p.sinais,raiz:p.raiz,banda:p.band,willing:p.willing,contato:A.contato})); }catch(e){}
+  // webhook (Ricardo pluga)
+  if(CFG.LEAD_WEBHOOK && CFG.LEAD_WEBHOOK.indexOf("[")!==0){
+    try{ fetch(CFG.LEAD_WEBHOOK,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(rec),keepalive:true}); }catch(e){}
+  }
+  window._lastLead=rec;
+}
+function waLink(msg){ const n=CFG.WHATSAPP_NUM.replace(/\D/g,""); return "https://wa.me/"+(n||"")+"?text="+encodeURIComponent(msg); }
+function indicacaoMsg(nome){ return "Oi! Acabei de ler \"É osso, mas vale a pena\", do Jâmisson Ferreira, e lembrei de você. Acho que ia te ajudar demais como dono. Dá uma olhada."; }
+function pixel(ev,tag){ if(!CFG.PIXEL_ON) return; try{ if(window.fbq) fbq("track",ev,{content_name:tag}); }catch(e){} }
+function bumpStat(k){ try{ const s=JSON.parse(localStorage.getItem("unijam_stats")||"{}"); s[k]=(s[k]||0)+1; localStorage.setItem("unijam_stats",JSON.stringify(s)); }catch(e){} }
+
+/* ---- Admin ---- */
+function showAdmin(){
+  document.getElementById("app").style.display="none";
+  const av=document.getElementById("admin-view"); av.style.display="block";
+  const leads=JSON.parse(localStorage.getItem("unijam_leads")||"[]");
+  const stats=JSON.parse(localStorage.getItem("unijam_stats")||"{}");
+  const acessos=stats.acessos||0, capt=leads.length;
+  const conv = acessos? Math.round((capt/acessos)*100):0;
+  document.getElementById("adm-kpis").innerHTML=[
+    ["Acessos",acessos],["Leads",capt],["Conclusão",conv+"%"],
+    ["★ média", capt? (leads.reduce((a,l)=>a+l.estrelas,0)/capt).toFixed(1):"—"]
+  ].map(k=>`<div class="adm-kpi"><div class="v">${k[1]}</div><div class="k">${k[0]}</div></div>`).join("");
+  // distribuição da pergunta-chave
+  const keys=["delegar","decidir","enxergar","liderar"];
+  const dist=keys.map(k=>{const c=leads.filter(l=>l.perfil.raiz===k).length;return `<div class="lead-row">${(RAIZ[k]||{}).emoji} ${(RAIZ[k]||{}).nome} — <b>${c}</b> (${capt?Math.round(c/capt*100):0}%)</div>`}).join("");
+  document.getElementById("adm-dist").innerHTML=dist||"<p class='muted'>Sem dados ainda.</p>";
+  // leads
+  document.getElementById("adm-leads").innerHTML = capt? leads.slice().reverse().map(l=>{
+    const c=l.contato||{}; const wn=(c.wpp||"").replace(/\D/g,"");
+    return `<div class="lead-row">
+      <span class="stars">${"★".repeat(l.estrelas)}${"☆".repeat(5-l.estrelas)}</span>
+      <b>${c.nome||"—"}</b> · ${c.email||"—"} · ${c.wpp||"—"} ${c.insta?("· "+c.insta):""}
+      <div style="margin:4px 0"><span class="tag">${l.acao}</span> <span class="tag">${(RAIZ[l.perfil.raiz]||{}).nome||l.perfil.raiz}</span> <span class="tag">banda ${l.perfil.banda}</span> <span class="tag">disp ${l.perfil.disposicao}/10</span></div>
+      ${l.perfil.depoimento?`<div style="font-style:italic;color:var(--ink)">“${l.perfil.depoimento}”</div>`:""}
+      ${wn?`<a class="wbtn" target="_blank" href="https://wa.me/55${wn}?text=${encodeURIComponent("Oi "+(c.nome||"").split(" ")[0]+"! Aqui é da equipe do Jâmisson. Vi o seu diagnóstico e queria trocar uma ideia rápida com você.")}">WhatsApp</a>`:""}
+    </div>`;
+  }).join("") : "<p class='muted'>Nenhum lead capturado ainda neste navegador.</p>";
+}
+function exportLeads(){
+  const leads=JSON.parse(localStorage.getItem("unijam_leads")||"[]");
+  if(!leads.length) return alert("Sem leads.");
+  const cols=["data","estrelas","acao","nome","email","wpp","instagram","raiz","banda","disposicao","tamanho","relacaoLivro","depoimento"];
+  const rows=leads.map(l=>[l.data,l.estrelas,l.acao,(l.contato||{}).nome,(l.contato||{}).email,(l.contato||{}).wpp,(l.contato||{}).insta,l.perfil.raiz,l.perfil.banda,l.perfil.disposicao,l.perfil.tamanho,l.perfil.relacaoLivro,(l.perfil.depoimento||"").replace(/\n/g," ")]);
+  const csv=[cols.join(",")].concat(rows.map(r=>r.map(v=>`"${(v==null?"":v).toString().replace(/"/g,'""')}"`).join(","))).join("\n");
+  const a=document.createElement("a"); a.href="data:text/csv;charset=utf-8,"+encodeURIComponent(csv); a.download="leads_quiz_unijam.csv"; a.click();
+}
+</script>
+</body>
+</html>

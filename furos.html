@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<!--
+  R01 · Desafio dos 7 Furos — Quiz-isca "Por onde sua agência vaza dinheiro" (POP 48 · skill criar-quiz)
+  TESTE DE PORTABILIDADE da engine de quiz (mesma do UniJam) adaptada ao projeto Escritório de Contratos:
+    • DS "JPS" (dourado/creme, Playfair Display + Source Sans 3, SEM emoji, sem #fff puro).
+    • Posicionamento v3: copy pré-compra = FINANÇAS/margem; a palavra "contrato" NÃO aparece (mecanismo revelado dentro do produto).
+  3 modos: Isca (→ checkout do Desafio R$37) · Pós-consumo (?modo=pos, antes×depois dos furos tapados → consultoria/Furo 7) · Comprador (?modo=comprador, Mapa dos 7 Furos como ferramenta).
+  Placeholders (Ricardo): LINK_CHECKOUT · LINK_CONSULTORIA · LINK_AREA_MEMBROS · LEAD_WEBHOOK · WHATSAPP_NUM · PIXEL_ID.
+  Compliance CDC: "espelho, não garantia"; números (R$50k média / R$919k teto) enquadrados como no briefing.
+-->
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Por onde sua agência vaza dinheiro · Diagnóstico dos 7 Furos</title>
+<meta name="description" content="Em 2 minutos, descubra por onde sua agência de marketing vaza margem ao longo do ano — e quanto isso custa.">
+<!-- WhatsApp/redes: preview do link compartilhado -->
+<meta property="og:type" content="website">
+<meta property="og:title" content="Por onde sua agência vaza dinheiro">
+<meta property="og:description" content="Em 2 minutos, descubra em qual dos 7 furos a sua margem está escapando — e quanto custa por ano.">
+<meta name="theme-color" content="#faf6ef">
+<!-- Fontes por <link> (mais confiável que @import no navegador interno do WhatsApp) -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,800;1,400&family=Source+Sans+3:wght@400;600;700&family=JetBrains+Mono:wght@500&display=swap">
+<!-- PIXEL META (placeholder): trocar PIXEL_ID e descomentar -->
+<style>
+:root{
+  --bg-cover:#0e0e0e;--bg-page:#faf6ef;--bg-white:#ffffff;--bg-dark:#1a1814;--bg-dark-mid:#22201c;
+  --gold:#b8973a;--gold-bright:#c9a84c;--gold-soft:#a88830;--gold-text:#8a7428;
+  --gold-border:rgba(184,151,58,0.3);--gold-border-soft:rgba(184,151,58,0.18);--gold-glow:rgba(201,168,76,0.08);
+  --text-dark:#1e1a16;--text-body:#3e3830;--text-secondary:#5e5548;--text-muted:#8a8074;
+  --text-on-dark:#ede6d8;--text-on-dark-sub:#c8bfb0;
+  --red:#a83028;--red-soft:#c04438;--green:#3a7848;--orange:#b87a22;--seg-empty:#ddd8d0;
+  --serif:'Playfair Display',Georgia,serif;--sans:'Source Sans 3','Segoe UI',sans-serif;--mono:'JetBrains Mono',monospace;
+  --maxw:660px;--radius:1px;--tracking-label:0.32em;
+}
+/* fontes carregadas via <link> no <head> — whatsapp-friendly */
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg-page);color:var(--text-body);font-family:var(--sans);line-height:1.7;-webkit-font-smoothing:antialiased;min-height:100vh}
+.wrap{max-width:var(--maxw);margin:0 auto;padding:0 24px}
+.kicker{font-family:var(--sans);font-weight:700;font-size:10px;letter-spacing:var(--tracking-label);text-transform:uppercase;color:var(--gold-text)}
+.label{font-family:var(--sans);font-weight:700;font-size:10px;letter-spacing:var(--tracking-label);text-transform:uppercase;color:var(--text-muted)}
+h1{font-family:var(--serif);font-weight:800;font-size:clamp(1.9rem,5.6vw,2.8rem);line-height:1.08;color:var(--text-dark)}
+h2{font-family:var(--serif);font-weight:800;font-size:clamp(1.4rem,4vw,1.95rem);line-height:1.12;color:var(--text-dark)}
+h3{font-family:var(--serif);font-weight:600;font-size:1.2rem;color:var(--text-dark)}
+p{font-size:15px;line-height:1.78;color:var(--text-body);margin:0 0 1em}
+p b{color:var(--text-dark);font-weight:700}
+.lead{font-size:1.12rem;color:var(--text-secondary)}
+.rule{width:54px;height:2px;background:var(--gold);margin:16px 0}
+.muted{color:var(--text-muted);font-family:var(--sans);font-size:.82rem}
+.val{font-family:var(--serif);color:var(--gold-text);font-weight:800}
+
+#app{min-height:100vh;display:flex;flex-direction:column}
+.topbar{position:sticky;top:0;background:var(--bg-page);border-bottom:1px solid var(--gold-border-soft);z-index:5}
+.topbar .wrap{display:flex;align-items:center;gap:12px;height:54px}
+.brand{font-family:var(--serif);font-weight:800;font-size:.92rem;letter-spacing:.02em;color:var(--text-dark)}
+.brand i{font-style:normal;color:var(--gold)}
+.progress{flex:1;height:4px;background:var(--seg-empty);border-radius:1px;overflow:hidden}
+.progress>i{display:block;height:100%;width:0;background:var(--gold);transition:width .35s ease}
+.pcount{font-family:var(--mono);font-weight:500;font-size:.72rem;color:var(--text-muted);min-width:42px;text-align:right}
+.screen{flex:1;display:flex;flex-direction:column;justify-content:center;padding:clamp(26px,7vw,56px) 0}
+.back{background:none;border:0;color:var(--text-muted);font-family:var(--sans);font-weight:700;font-size:.78rem;letter-spacing:.04em;text-transform:uppercase;cursor:pointer;padding:8px 0;margin-bottom:10px}
+.back:hover{color:var(--gold-text)}
+.qsub{margin:10px 0 24px;font-size:1rem;color:var(--text-secondary)}
+
+.opts{display:flex;flex-direction:column;gap:11px}
+.opt{display:flex;align-items:center;gap:14px;width:100%;text-align:left;background:var(--bg-white);border:1px solid var(--gold-border-soft);border-radius:var(--radius);padding:16px 18px;cursor:pointer;font-family:var(--sans);font-size:1rem;color:var(--text-body);transition:border-color .15s,box-shadow .15s}
+.opt:hover{border-color:var(--gold)}
+.opt .mk{font-size:1.3rem;line-height:1;flex:0 0 auto}
+.opt.sel{border-color:var(--gold);box-shadow:inset 3px 0 0 var(--gold)}
+.opt .ck{margin-left:auto;width:16px;height:16px;border:1px solid var(--gold-border);flex:0 0 auto;transform:rotate(45deg)}
+.opt.sel .ck{background:var(--gold);border-color:var(--gold)}
+.multi-note{margin:13px 0 0;color:var(--text-muted);font-size:.8rem}
+
+.scale{display:grid;grid-template-columns:repeat(11,1fr);gap:5px;margin:8px 0 6px}
+.scale button{aspect-ratio:1;border:1px solid var(--gold-border-soft);background:var(--bg-white);border-radius:var(--radius);font-family:var(--mono);font-weight:500;color:var(--text-secondary);cursor:pointer;font-size:.92rem}
+.scale button:hover{border-color:var(--gold)}
+.scale button.sel{background:var(--gold);border-color:var(--gold);color:#fff}
+.scale-ends{display:flex;justify-content:space-between;color:var(--text-muted);font-size:.74rem;margin-bottom:18px}
+
+.field{margin:0 0 14px}
+.field label{display:block;font-family:var(--sans);font-weight:700;font-size:.72rem;letter-spacing:.06em;text-transform:uppercase;color:var(--text-dark);margin:0 0 6px}
+.field input,.field textarea{width:100%;font-family:var(--sans);font-size:1rem;color:var(--text-dark);background:var(--bg-white);border:1px solid var(--gold-border-soft);border-radius:var(--radius);padding:13px 14px}
+.field input:focus,.field textarea:focus{outline:none;border-color:var(--gold)}
+.field.bad input{border-color:var(--red)}
+.field .err{color:var(--red);font-size:.74rem;margin-top:5px;display:none}
+.field.bad .err{display:block}
+.consent{display:flex;gap:10px;align-items:flex-start;margin:8px 0 20px;font-size:.82rem;color:var(--text-secondary)}
+.consent input{margin-top:4px;accent-color:var(--gold)}
+
+.cta{display:inline-block;width:100%;text-align:center;font-family:var(--sans);font-weight:700;letter-spacing:.03em;background:var(--gold);color:#1a1410;text-decoration:none;border:0;padding:16px 24px;border-radius:var(--radius);cursor:pointer;font-size:1rem;text-transform:uppercase}
+.cta:hover{background:var(--gold-bright)}
+.cta.ghost{background:transparent;color:var(--text-dark);border:1px solid var(--gold-border)}
+.cta.ghost:hover{background:var(--gold-glow)}
+.cta-row{display:flex;flex-direction:column;gap:10px;margin-top:8px}
+
+.result{padding:clamp(22px,6vw,44px) 0}
+.printhead{display:none}
+.diagnum{display:flex;align-items:baseline;gap:12px;margin:6px 0}
+.diagnum .big{font-family:var(--serif);font-weight:800;font-size:3rem;color:var(--red);line-height:1}
+.gauge{height:10px;border-radius:1px;background:linear-gradient(90deg,var(--green),var(--orange),var(--red));position:relative;margin:14px 0 6px}
+.gauge>i{position:absolute;top:-5px;width:2px;height:20px;background:var(--text-dark);transform:translateX(-50%)}
+.gauge-ends{display:flex;justify-content:space-between;color:var(--text-muted);font-size:.74rem}
+.card{background:var(--bg-white);border:1px solid var(--gold-border-soft);border-radius:var(--radius);padding:22px;margin:18px 0}
+.darkcard{background:var(--bg-dark);color:var(--text-on-dark);padding:24px;margin:18px 0;border-radius:var(--radius)}
+.darkcard .label{color:var(--gold-bright)}
+.darkcard p{color:var(--text-on-dark-sub)}
+.darkcard .val{color:var(--gold-bright)}
+.beliefs{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:14px 0}
+.beliefs .b{background:var(--bg-white);border:1px solid var(--gold-border-soft);padding:14px}
+.beliefs .b .t{font-weight:700;font-size:.68rem;letter-spacing:.12em;text-transform:uppercase;margin-bottom:6px}
+.beliefs .antes .t{color:var(--text-muted)}.beliefs .depois .t{color:var(--gold-text)}
+.guide ol{margin:10px 0 0;padding-left:18px}
+.guide li{margin:0 0 9px;line-height:1.6;color:var(--text-body)}
+.guide li::marker{color:var(--gold)}
+.qw{border-left:3px solid var(--gold);background:var(--bg-white);padding:14px 16px;margin:14px 0}
+.win{display:flex;gap:10px;margin:8px 0;align-items:flex-start}
+.win .mk{color:var(--gold)}
+.foot-note{font-size:.78rem;color:var(--text-muted);margin-top:22px;border-top:1px solid var(--gold-border-soft);padding-top:16px}
+.deltawrap{display:flex;gap:18px;align-items:center;justify-content:center;margin:10px 0}
+.delta{text-align:center}
+.delta .n{font-family:var(--serif);font-weight:800;font-size:2.4rem;line-height:1}
+.delta.antes .n{color:var(--text-muted)}.delta.depois .n{color:var(--green)}
+.arrow{font-size:1.4rem;color:var(--gold)}
+
+.stepper{display:flex;gap:6px;margin:18px 0 8px;flex-wrap:wrap}
+.stepper .st{flex:1;min-width:130px;display:flex;align-items:center;gap:8px;padding:9px 11px;border:1px solid var(--gold-border-soft);background:var(--bg-white);font-size:.72rem;font-weight:600;color:var(--text-muted)}
+.stepper .st .dot{width:20px;height:20px;background:var(--seg-empty);color:#fff;display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-weight:500;flex:0 0 auto}
+.stepper .st.on{border-color:var(--gold);color:var(--text-dark)}
+.stepper .st.on .dot{background:var(--gold)}
+.stepper .st.done .dot{background:var(--green)}
+
+#admin-view{display:none;padding:30px 0}
+.adm-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px;margin:12px 0}
+.adm-kpi{background:var(--bg-white);border:1px solid var(--gold-border-soft);padding:12px}
+.adm-kpi .v{font-family:var(--serif);font-weight:800;font-size:1.5rem;color:var(--text-dark)}
+.adm-kpi .k{font-size:.7rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:.08em}
+.adm-card{background:var(--bg-white);border:1px solid var(--gold-border-soft);padding:16px;margin:12px 0}
+.lead-row{border-top:1px solid var(--gold-border-soft);padding:12px 0;font-size:.86rem}
+.stars{color:var(--gold);letter-spacing:2px}
+.wbtn{display:inline-block;background:var(--green);color:#fff;text-decoration:none;font-weight:700;font-size:.76rem;padding:6px 12px;margin-top:6px}
+.tag{display:inline-block;font-weight:700;font-size:.66rem;text-transform:uppercase;letter-spacing:.06em;padding:3px 8px;background:var(--bg-page);border:1px solid var(--gold-border-soft);color:var(--text-secondary)}
+
+@media (max-width:420px){.scale{grid-template-columns:repeat(6,1fr)}.beliefs{grid-template-columns:1fr}.stepper .st .lbl{display:none}.stepper .st{min-width:0;justify-content:center}}
+@media print{.topbar,.back,.cta,.cta-row,#admin-view{display:none!important}.printhead{display:block!important}body{background:#fff}}
+</style>
+</head>
+<body>
+<noscript><div style="max-width:600px;margin:40px auto;padding:24px;font-family:Georgia,serif;color:#1e1a16">Para responder ao diagnóstico, abra este link no seu navegador (no WhatsApp, toque nos três pontinhos → "Abrir no navegador"). Leva 2 minutos.</div></noscript>
+<div id="app">
+  <div class="topbar"><div class="wrap">
+    <span class="brand">7 FUROS <i>·</i> <span id="modetag" class="muted"></span></span>
+    <div class="progress"><i id="bar"></i></div>
+    <span class="pcount" id="pcount"></span>
+  </div></div>
+  <main id="stage" class="wrap"></main>
+</div>
+
+<div id="admin-view" class="wrap">
+  <span class="kicker">Painel interno</span>
+  <h2>Leads & analytics</h2>
+  <p class="muted">Dados locais (deste navegador) + o que foi enviado ao webhook. Para o time comercial.</p>
+  <div class="adm-grid" id="adm-kpis"></div>
+  <div class="adm-card"><span class="label">Furo dominante (maior desafio)</span><div id="adm-dist"></div></div>
+  <div class="adm-card"><span class="label">Leads capturados</span><div id="adm-leads"></div></div>
+  <button class="cta ghost" onclick="exportLeads()">Exportar leads (CSV)</button>
+</div>
+
+<script>
+"use strict";
+const CFG = {
+  LINK_CHECKOUT: "[LINK_CHECKOUT]",          // checkout do Desafio dos 7 Furos (R$37)
+  LINK_CONSULTORIA: "[LINK_CONSULTORIA]",     // (pós) ponte do Furo 7 → consultoria
+  LINK_AREA_MEMBROS: "[LINK_AREA_MEMBROS]",   // (comprador) área de membros / próxima ferramenta
+  LEAD_WEBHOOK: "[LEAD_WEBHOOK]",
+  WHATSAPP_NUM: "[WHATSAPP_NUM]",
+  PIXEL_ON: false
+};
+const _modo = new URLSearchParams(location.search).get("modo");
+const MODE = _modo==="pos" ? "pos" : (_modo==="comprador"||_modo==="bonus") ? "comprador" : "isca";
+
+/* ---- conteúdo (os 4 perfis de vazamento; pré-compra = dinheiro, nunca "contrato") ---- */
+const RAIZ = {
+  escopo: {nome:"Você entrega demais de graça", leak:"Escopo aberto", furos:"furos 2, 3 e 4"},
+  caixa:  {nome:"O dinheiro entra atrasado (ou não entra)", leak:"Caixa furado", furos:"furos 5 e 6"},
+  acordo: {nome:"Você trabalha no fio do bigode", leak:"Sem acordo", furos:"furo 1 — a raiz"},
+  margem: {nome:"Você cobra pouco pelo que entrega", leak:"Margem fina", furos:"furo 7 — a peça invisível"}
+};
+const DIAG = {
+  escopo:"O seu vazamento principal é o escopo. O \"só mais uma coisinha\" vira hora não cobrada, a mudança de projeto entra sem nota, e a aprovação que não chega faz o custo subir. Você trabalha mais e leva pra casa menos.",
+  caixa:"O seu vazamento principal é o caixa. O serviço sai, mas o dinheiro entra atrasado, pela metade, ou não entra. Sem um processo de cobrança, você vira o banco do cliente — e a inadimplência come a sua margem.",
+  acordo:"O seu vazamento começa na raiz: você fecha no combinado verbal, na confiança. E o acordo de boca é o furo que abre todos os outros, porque você não tem onde se apoiar quando o cliente muda a regra no meio do jogo.",
+  margem:"O seu vazamento é estrutural: você entrega muito por pouco. Mesmo fazendo tudo certo, a conta não fecha — o preço foi montado pra caber no cliente, não pra sobrar pra você. É o furo mais silencioso e o mais caro."
+};
+const BANDA_INTRO = {
+  controlado:"Pela sua resposta, a sua agência ainda vaza pouco. É a melhor hora de blindar a margem antes que a conta cresça.",
+  vazando:"Pela sua resposta, a sua agência já vaza dinheiro em mais de um ponto. Dá pra estancar antes que vire rotina.",
+  hemorragia:"Pela sua resposta, a sua agência perde dinheiro em quase todos os furos. É isso que explica a sensação de faturar muito e sobrar pouco."
+};
+const CRENCA = {
+  escopo:{antes:"Atender bem é fazer o extra de graça pra fidelizar.", depois:"Atender bem é entregar com escopo claro. O extra é cobrado — e o cliente respeita mais."},
+  caixa:{antes:"Cobrar firme afasta cliente.", depois:"Ter processo de cobrança é o que segura o cliente e o caixa. Quem não cobra vira refém."},
+  acordo:{antes:"Com cliente bom, a palavra basta.", depois:"O combinado por escrito protege a relação boa — não é o que a estraga."},
+  margem:{antes:"Meu problema é faturar mais.", depois:"Meu problema é sobrar mais. Faturamento sem margem é só movimento."}
+};
+const GUIA = {
+  escopo:["Comece pelo <b>Mapa dos 7 Furos</b>: veja, em R$, quanto o escopo aberto te custa por ano.","Sua ferramenta-chave: <b>fechar o escopo</b> (o que está dentro e o que fica de fora) e a forma de cobrar a mudança sem atrito.","Depois, a <b>trava de prazo</b> pra aprovação que arrasta.","Por último, a peça invisível: a <b>precificação</b> (a agência só enxerga na reta final)."],
+  caixa:["Comece pelo <b>Mapa dos 7 Furos</b> pra dimensionar o que a inadimplência te tira por ano.","Sua ferramenta-chave: a <b>régua de cobrança</b> em ondas — tira a cobrança do emocional e bota num processo.","Depois, a trava de <b>suspensão por atraso</b> e o caminho da negativação, sem dor de cabeça.","Por último, a peça invisível: a precificação."],
+  acordo:["Comece pelo <b>Mapa dos 7 Furos</b>: o acordo verbal é o furo-raiz, e é o que abre todos os outros.","Sua ferramenta-chave: a <b>regra do jogo por escrito</b> que o cliente lê e cumpre (sem juridiquês).","Depois, fechar escopo e instalar a cobrança.","Por último, a peça invisível: a precificação."],
+  margem:["Comece pelo <b>Mapa dos 7 Furos</b> pra ver que parte do seu prejuízo é preço, e que parte é vazamento operacional.","Tape primeiro os furos operacionais (escopo, extra, cobrança) — eles devolvem caixa rápido.","Isso te dá fôlego pra atacar o furo mais caro: a <b>precificação</b> (a peça invisível, revelada na reta final).","Esse é o furo que abre a porta da consultoria."]
+};
+const QUICKWIN = {
+  escopo:"Hoje, abra o <b>Mapa dos 7 Furos</b> e some quantas horas você entregou no último mês que ninguém pagou (o \"só mais uma coisinha\"). Multiplique pelo seu valor/hora. Esse número costuma assustar — e é o primeiro furo que você tapa.",
+  caixa:"Hoje, liste os clientes que estão te devendo agora e há quanto tempo. Some. Esse é o dinheiro que já é seu e está na rua. O Mapa dos 7 Furos transforma isso num processo de cobrança, não num desabafo.",
+  acordo:"Hoje, anote quantos clientes você atende sem nada por escrito além do combinado verbal. Cada um é uma porta aberta pra prejuízo. Comece pelo maior: é por ele que o caixa mais vaza.",
+  margem:"Hoje, pegue o seu maior cliente e calcule quantas horas a sua equipe gasta com ele por mês. Acima de ~100h, é bem provável que você esteja no prejuízo com esse cliente. O Mapa dos 7 Furos mostra isso em R$."
+};
+const VITORIAS = ["Saber, em R$, quanto cada furo te custa por ano.","Uma ferramenta pronta pra tapar cada furo (sem advogado, sem começar do zero).","Parar de entregar hora que ninguém pagou.","Sobrar dinheiro justamente nos meses em que você fatura bem."];
+
+/* ---- perguntas (sem emoji; marcador dourado) ---- */
+const Q_ISCA = [
+  {id:"intro",type:"intro"},
+  {id:"icp",type:"single",kicker:"Pergunta 1 de 9",title:"Você é dono de uma agência ou de um negócio de serviço?",
+    options:[{em:"👑",label:"Sou dono / fundador",val:"dono"},{em:"🤝",label:"Sou sócio",val:"socio"},{em:"🧭",label:"Sou gestor (não sou dono)",val:"gestor"},{em:"🌱",label:"Ainda não tenho clientes",val:"nao_tenho"}]},
+  {id:"size",type:"single",kicker:"Pergunta 2 de 9",title:"Quanto a sua agência fatura por mês, mais ou menos?",
+    options:[{em:"🪙",label:"Até R$ 5 mil",val:"ate5"},{em:"💵",label:"R$ 5 mil a R$ 15 mil",val:"5-15"},{em:"💰",label:"R$ 15 mil a R$ 50 mil",val:"15-50"},{em:"🏦",label:"Mais de R$ 50 mil",val:"50+"}]},
+  {id:"rel",type:"single",kicker:"Pergunta 3 de 9",title:"No fim do mês, quanto sobra?",
+    options:[{em:"😌",label:"Sobra uma margem saudável",val:"controle"},{em:"😬",label:"Sobra, mas apertado",val:"limite"},{em:"😣",label:"Quase nada sobra",val:"escravo"},{em:"🔴",label:"Tem mês que fecho no vermelho",val:"vermelho"}]},
+  {id:"raiz",type:"single",kicker:"Pergunta 4 de 9 · a principal",title:"Qual destes mais drena o seu caixa hoje?",sub:"Escolha o que mais pesa. É esta resposta que monta o seu diagnóstico.",
+    options:[
+      {em:"🎁",label:"Entrego um monte de extra de graça pra agradar o cliente",val:"escopo"},
+      {em:"💸",label:"Cliente atrasa, paga pela metade, ou some devendo",val:"caixa"},
+      {em:"🗣️",label:"Trabalho na confiança, sem nada por escrito",val:"acordo"},
+      {em:"🏷️",label:"Sinto que cobro pouco pelo que entrego",val:"margem"}
+    ]},
+  {id:"sinais",type:"multi",kicker:"Pergunta 5 de 9",title:"Quais destes você já viveu nos últimos 12 meses?",sub:"Marque todos os que aconteceram. Cada um é um furo.",
+    options:[
+      {em:"🗣️",label:"Fechei serviço sem nada formal, só no combinado",val:"f1"},
+      {em:"➕",label:"\"Só mais uma coisinha\" que virou trabalho de graça",val:"f2"},
+      {em:"🔧",label:"Mudança de escopo que eu não cobrei",val:"f3"},
+      {em:"🐌",label:"Projeto que arrastou esperando aprovação do cliente",val:"f4"},
+      {em:"⏳",label:"Cliente que atrasou e eu fiquei sem jeito de cobrar",val:"f5"},
+      {em:"🚫",label:"Calote / tive que correr atrás de quem não pagou",val:"f6"},
+      {em:"🏷️",label:"Sensação de cobrar pouco pelo tamanho da entrega",val:"f7"}
+    ]},
+  {id:"tentou",type:"single",kicker:"Pergunta 6 de 9",title:"O que você já tentou pra resolver isso?",
+    options:[{em:"🆕",label:"Nada formal ainda",val:"nunca"},{em:"🌐",label:"Um modelo genérico da internet / ChatGPT",val:"tentou"},{em:"⚖️",label:"Paguei advogado, mas ninguém usa o documento",val:"advogado"},{em:"🛠️",label:"Já tenho um processo rodando",val:"trabalhando"}]},
+  {id:"crenca",type:"single",kicker:"Pergunta 7 de 9",title:"Quanto você acha que perde por ano com esses furos?",sub:"Responde no chute.",
+    options:[{em:"🤷",label:"Não faço ideia",val:"nao_sei"},{em:"💵",label:"Até R$ 10 mil",val:"ate10"},{em:"💰",label:"De R$ 10 mil a R$ 50 mil",val:"10-50"},{em:"🔥",label:"Mais de R$ 50 mil",val:"50+"}]},
+  {id:"livro",type:"single",kicker:"Pergunta 8 de 9",title:"Você já conhece o Desafio dos 7 Furos?",
+    options:[{em:"❓",label:"Não conhecia",val:"nao_conhece"},{em:"👀",label:"Quero conhecer",val:"quer"},{em:"📖",label:"Estou fazendo",val:"lendo"},{em:"✅",label:"Já fiz",val:"leu"}]},
+  {id:"disp",type:"scale",kicker:"Pergunta 9 de 9",title:"De 0 a 10, o quanto você quer parar de vazar dinheiro agora?",ends:["Tá tranquilo","Quero resolver já"]},
+  {id:"capture",type:"capture"},
+  {id:"result",type:"result"}
+];
+const Q_POS = [
+  {id:"intro",type:"intro"},
+  {id:"concluiu",type:"single",kicker:"Antes e depois",title:"Você concluiu o Desafio dos 7 Furos?",
+    options:[{em:"✅",label:"Concluí as 7 sessões",val:"sim"},{em:"🔜",label:"Estou quase",val:"quase"},{em:"🔖",label:"Fiz só uma parte",val:"parte"}]},
+  {id:"antes",type:"single",kicker:"O ponto de partida",title:"Quando você COMEÇOU, quantos dos 7 furos estavam abertos na sua agência?",sub:"No Mapa dos 7 Furos você marcou isso. Se não lembra exato, escolha o mais próximo.",
+    options:[{em:"🟢",label:"De 1 a 2",val:"1"},{em:"🟡",label:"De 3 a 4",val:"4"},{em:"🔴",label:"De 5 a 7",val:"7"},{em:"🤷",label:"Não lembro",val:"x"}]},
+  {id:"sinais",type:"multi",kicker:"Hoje",title:"Quais furos ainda estão abertos hoje?",sub:"Marque os que continuam. A diferença é a sua prova de caixa recuperado.",
+    options:[
+      {em:"🗣️",label:"Fecho serviço sem nada formal",val:"f1"},{em:"➕",label:"Extra de graça",val:"f2"},{em:"🔧",label:"Mudança de escopo sem cobrar",val:"f3"},{em:"🐌",label:"Projeto que arrasta",val:"f4"},{em:"⏳",label:"Cliente que atrasa e não cobro",val:"f5"},{em:"🚫",label:"Calote / negativação",val:"f6"},{em:"🏷️",label:"Cobro pouco pela entrega",val:"f7"}]},
+  {id:"raiz",type:"single",kicker:"Aplicação",title:"Qual furo você mais tapou?",
+    options:[{em:"🎁",label:"Escopo / extra de graça",val:"escopo"},{em:"💸",label:"Cobrança / inadimplência",val:"caixa"},{em:"🗣️",label:"O acordo por escrito (a raiz)",val:"acordo"},{em:"🏷️",label:"A precificação",val:"margem"}]},
+  {id:"disp",type:"scale",kicker:"Disposição",title:"De 0 a 10, o quanto você quer atacar agora o furo mais caro — a precificação?",ends:["Tô bem assim","Quero o próximo passo"]},
+  {id:"depo",type:"text",kicker:"Sua história",title:"Em 2 ou 3 linhas: o que mudou no caixa da sua agência depois do desafio?",sub:"Com a sua autorização, pode dar coragem pra outro dono. (Opcional.)",placeholder:"Ex.: fechei o escopo, a inadimplência caiu, e recuperei caixa já no primeiro mês..."},
+  {id:"capture",type:"capture"},
+  {id:"result",type:"result"}
+];
+const _byId = id => Q_ISCA.find(q=>q.id===id);
+const Q_COMPRADOR = [
+  {id:"intro",type:"intro"},
+  {..._byId("rel"),    kicker:"Mapa dos 7 Furos · 1 de 6"},
+  {..._byId("raiz"),   kicker:"Mapa dos 7 Furos · 2 de 6 · o principal"},
+  {..._byId("sinais"), kicker:"Mapa dos 7 Furos · 3 de 6"},
+  {..._byId("icp"),    kicker:"Mapa dos 7 Furos · 4 de 6"},
+  {..._byId("size"),   kicker:"Mapa dos 7 Furos · 5 de 6"},
+  {..._byId("disp"),   kicker:"Mapa dos 7 Furos · 6 de 6"},
+  {id:"capture",type:"capture"},
+  {id:"result",type:"result"}
+];
+const STEPS = MODE==="pos" ? Q_POS : MODE==="comprador" ? Q_COMPRADOR : Q_ISCA;
+
+let idx=0; const A={}; const startedAt=nowISO(); bumpStat("acessos"); pixel("InitiateCheckout","quiz_start");
+function nowISO(){ try{return new Date().toISOString();}catch(e){return "";} }
+const stage=document.getElementById("stage");
+document.getElementById("modetag").textContent = MODE==="pos"?"antes & depois":MODE==="comprador"?"mapa dos furos":"diagnóstico";
+if(location.hash==="#admin"){ showAdmin(); } else { render(); }
+window.addEventListener("hashchange",()=>{ if(location.hash==="#admin") showAdmin(); else location.reload(); });
+
+function progress(){
+  const total=STEPS.length-1; const pct=Math.min(100,Math.round((idx/total)*100));
+  document.getElementById("bar").style.width=pct+"%";
+  const q=STEPS.filter(s=>["single","multi","scale","text"].includes(s.type)).length;
+  const done=STEPS.slice(0,idx).filter(s=>["single","multi","scale","text"].includes(s.type)).length;
+  document.getElementById("pcount").textContent=(idx>0&&idx<STEPS.length-1&&done<=q)?done+"/"+q:"";
+}
+function render(){
+  const s=STEPS[idx]; progress();
+  if(s.type==="intro") return renderIntro();
+  if(s.type==="capture") return renderCapture();
+  if(s.type==="result") return renderResult();
+  let h=`<div class="screen">`;
+  if(idx>1) h+=`<button class="back" onclick="go(-1)">‹ voltar</button>`;
+  h+=`<span class="kicker">${s.kicker||""}</span><h2 style="margin-top:10px">${s.title}</h2>`;
+  h+= s.sub?`<p class="qsub">${s.sub}</p>`:`<div style="height:18px"></div>`;
+  if(s.type==="single"){
+    h+=`<div class="opts">`+s.options.map((o,i)=>`<button class="opt" onclick="pick('${s.id}','${o.val}',this)"><span class="mk">${o.em||"◆"}</span><span>${o.label}</span><span class="ck"></span></button>`).join("")+`</div>`;
+  } else if(s.type==="multi"){
+    h+=`<div class="opts" id="multi">`+s.options.map(o=>`<button class="opt" data-v="${o.val}" onclick="this.classList.toggle('sel')"><span class="mk">${o.em||"◆"}</span><span>${o.label}</span><span class="ck"></span></button>`).join("")+`</div>`;
+    h+=`<div class="multi-note">Pode marcar quantos quiser. Se não viveu nenhum, siga em frente.</div><div class="cta-row"><button class="cta" onclick="submitMulti('${s.id}')">Continuar ›</button></div>`;
+  } else if(s.type==="scale"){
+    h+=`<div class="scale">`+Array.from({length:11},(_,n)=>`<button onclick="pickScale('${s.id}',${n},this)">${n}</button>`).join("")+`</div><div class="scale-ends"><span>${s.ends[0]}</span><span>${s.ends[1]}</span></div>`;
+  } else if(s.type==="text"){
+    h+=`<div class="field"><textarea id="txt" rows="4" placeholder="${s.placeholder||""}"></textarea></div><div class="cta-row"><button class="cta" onclick="submitText('${s.id}')">Continuar ›</button><button class="cta ghost" onclick="A['${s.id}']='';go(1)">Pular</button></div>`;
+  }
+  h+=`</div>`; stage.innerHTML=h;
+}
+function stepper(active){
+  const steps=["Mapa dos Furos","Travar o escopo","Régua de cobrança","Suspensão & negativação"];
+  return `<div class="stepper">`+steps.map((s,i)=>`<div class="st ${i+1===active?"on":""}${i+1<active?" done":""}"><span class="dot">${i+1}</span><span class="lbl">${s}</span></div>`).join("")+`</div>`;
+}
+function renderIntro(){
+  if(MODE==="comprador"){
+    stage.innerHTML=`<div class="screen"><span class="kicker">Sua ferramenta 1</span><h1 style="margin-top:12px">O Mapa dos 7 Furos</h1><div class="rule"></div>${stepper(1)}<p class="lead">Antes de tapar, é preciso medir. Em 2 minutos, eu mostro por onde a sua agência está vazando dinheiro — e por onde começar.</p><div class="cta-row"><button class="cta" onclick="go(1)">Preencher o meu mapa ›</button></div><p class="muted" style="margin-top:14px">É a primeira ferramenta do seu desafio. Um espelho do seu caixa, não uma garantia.</p></div>`;
+    return;
+  }
+  const isca=MODE!=="pos";
+  stage.innerHTML=`<div class="screen"><span class="kicker">${isca?"Diagnóstico · 2 minutos":"Antes e depois · pra quem fez o desafio"}</span>
+    <h1 style="margin-top:12px">${isca?"Por onde a sua agência vaza dinheiro?":"Quanto caixa você recuperou?"}</h1><div class="rule"></div>
+    <p class="lead">${isca?"Você fatura bem, mas no fim do mês sobra pouco. Responda 9 perguntas e eu te mostro em qual dos 7 furos a sua margem está escapando — e quanto isso custa por ano.":"Você fez o Desafio dos 7 Furos. Vamos medir, lado a lado, quantos furos você já tapou e qual é o seu próximo passo."}</p>
+    <div class="cta-row"><button class="cta" onclick="go(1)">${isca?"Descobrir os meus furos ›":"Ver o meu antes e depois ›"}</button></div>
+    <p class="muted" style="margin-top:14px">É um espelho do seu caixa, não uma garantia. Leva 2 minutos.${isca?" No fim, eu digo se este desafio é mesmo pra você.":""}</p></div>`;
+}
+function pick(id,val,el){ A[id]=val; [...el.parentNode.children].forEach(c=>c.classList.remove("sel")); el.classList.add("sel"); bumpStat("resp_"+id+"_"+val); setTimeout(()=>go(1),170); }
+function submitMulti(id){ A[id]=[...document.querySelectorAll("#multi .opt.sel")].map(e=>e.dataset.v); go(1); }
+function pickScale(id,n,el){ A[id]=n; [...el.parentNode.children].forEach(c=>c.classList.remove("sel")); el.classList.add("sel"); setTimeout(()=>go(1),170); }
+function submitText(id){ A[id]=(document.getElementById("txt").value||"").trim(); go(1); }
+function go(d){ idx=Math.max(0,Math.min(STEPS.length-1,idx+d)); window.scrollTo(0,0); render(); }
+
+function renderCapture(){
+  stage.innerHTML=`<div class="screen"><button class="back" onclick="go(-1)">‹ voltar</button><span class="kicker">Quase lá</span>
+    <h2 style="margin-top:10px">O seu diagnóstico está pronto.</h2><p class="qsub">Pra onde eu envio? Sem spam — é pra te entregar o resultado e, se fizer sentido, te ajudar a tapar os furos.</p>
+    <div class="field"><label>Seu nome</label><input id="f_nome"><div class="err">Diz o seu nome.</div></div>
+    <div class="field"><label>E-mail</label><input id="f_email" type="email"><div class="err">E-mail inválido.</div></div>
+    <div class="field"><label>WhatsApp (com DDD)</label><input id="f_wpp" inputmode="tel" placeholder="(11) 9 9999-9999"><div class="err">Coloca um WhatsApp válido.</div></div>
+    <div class="field"><label>Instagram da agência <span class="muted">(opcional)</span></label><input id="f_insta" placeholder="@suaagencia"></div>
+    <label class="consent"><input type="checkbox" id="f_lgpd"><span>Autorizo o contato por e-mail/WhatsApp e o uso dos meus dados conforme a política de privacidade (LGPD).</span></label>
+    <div class="cta-row"><button class="cta" onclick="finishCapture()">Ver o meu diagnóstico ›</button></div></div>`;
+}
+function finishCapture(){
+  const nome=v("f_nome"),email=v("f_email"),wpp=v("f_wpp"),insta=v("f_insta"),lgpd=document.getElementById("f_lgpd").checked;
+  let ok=true;
+  ok=err("f_nome",nome.length>=2)&&ok; ok=err("f_email",/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email))&&ok; ok=err("f_wpp",wpp.replace(/\D/g,"").length>=10)&&ok;
+  if(!lgpd){ alert("Marque o consentimento para receber o resultado."); ok=false; }
+  if(!ok) return; A.contato={nome,email,wpp,insta,lgpd:true}; bumpStat("leads"); pixel("Lead","lead_capture"); go(1);
+}
+function v(id){ return (document.getElementById(id).value||"").trim(); }
+function err(id,good){ document.getElementById(id).parentNode.classList.toggle("bad",!good); return good; }
+
+function profile(){
+  const sinais=Array.isArray(A.sinais)?A.sinais.length:0;
+  let band=sinais<=2?"controlado":sinais<=4?"vazando":"hemorragia";
+  if((A.rel==="vermelho"||A.rel==="escravo")&&band==="controlado") band="vazando";
+  const current=Math.max(1,Math.round(2+(sinais/7)*8)); // poucos furos = nº baixo de vazamento
+  const raiz=A.raiz||"escopo";
+  const willing=(typeof A.disp==="number")?A.disp:5;
+  return {raiz,band,sinais,current,willing,icp:A.icp||"",size:A.size||"",rel:A.rel||"",tentou:A.tentou||"",perda:A.crenca||"",livro:A.livro||"",antes:A.antes&&A.antes!=="x"?parseInt(A.antes,10):null,depo:A.depo||""};
+}
+function stars(p){
+  let s=0;
+  var _icp=({dono:25,socio:20,gestor:10,nao_tenho:0})[p.icp]; s+=(_icp===undefined?(MODE==="pos"?22:8):_icp);
+  s+=({hemorragia:20,vazando:15,controlado:8})[p.band]||12;
+  s+=({trabalhando:12,advogado:13,tentou:11,nunca:7})[p.tentou]||(MODE==="pos"?14:8);
+  s+=Math.round((p.willing||5)*2);
+  s+=({"50+":15,"15-50":12,"5-15":7,"ate5":3})[p.size]||(MODE==="pos"?8:6);
+  if(p.livro==="leu"||p.livro==="lendo"||MODE==="pos") s+=10;       // alvo consultoria
+  s+=5; if(p.perda==="50+"||p.perda==="10-50") s+=4;                 // já percebe a perda
+  const star=s>=80?5:s>=65?4:s>=45?3:s>=30?2:1; return {score:s,star};
+}
+function action(p,st){
+  if(MODE==="comprador") return "Acompanhar aplicação + consultoria (cliente)";
+  if(MODE==="pos") return "Consultoria (Furo 7) + colher depoimento";
+  if(p.livro==="leu"||p.livro==="lendo") return "Consultoria (Furo 7) + acompanhar";
+  if((p.size==="50+"||p.size==="15-50")&&p.band!=="controlado") return "Desafio + ponte consultoria (agência maior)";
+  if(p.willing<=3||st.star<=2) return "Nutrir (lead frio)";
+  return "Vender o Desafio (R$37)";
+}
+function recommend(p){
+  if(p.willing<=3) return {rec:false,txt:"Vou ser direto, porque o desafio inteiro é direto. Ele só funciona pra quem quer ENTENDER e CORRIGIR a própria margem — não pra quem quer empurrar o problema pra frente. Pela sua resposta, talvez agora não seja a sua hora. Quando for, ele vai estar aqui."};
+  if(p.icp==="nao_tenho") return {rec:true,soft:true,txt:"Você ainda está começando, e o desafio fala da pele de quem já tem cliente vazando margem. Guarde pra quando os primeiros contratos chegarem — ou faça agora pra já começar sem os furos que quase todo dono leva anos pra fechar."};
+  if(p.band==="controlado"&&p.willing<7) return {rec:true,soft:true,txt:"A sua agência ainda vaza pouco, e essa é a melhor hora de blindar. O desafio te dá as ferramentas pra manter a margem antes que os furos cresçam. Sem pressa, mas vale."};
+  return {rec:true,soft:false,txt:"Sim. Este desafio é pra você, e é pra agora. O que você descreveu é exatamente o vazamento que ele estanca — com uma ferramenta pronta por furo, no eixo do seu caixa, não do seu advogado."};
+}
+
+function renderResult(){
+  const p=profile(); const st=stars(p); saveLead(p,st); pixel("ViewContent","result_view");
+  if(MODE==="pos") return renderResultPos(p,st);
+  if(MODE==="comprador") return renderResultComprador(p,st);
+  const r=RAIZ[p.raiz]||RAIZ.escopo; const rec=recommend(p);
+  const nome=(A.contato&&A.contato.nome)?A.contato.nome.split(" ")[0]:"";
+  let h=`<div class="result"><div class="printhead"><span class="kicker">Diagnóstico dos 7 Furos</span><h2>${r.nome}</h2></div>
+    <span class="kicker">${nome?nome+", ":""}o seu furo principal</span><h1 style="margin-top:8px">${r.nome}</h1><div class="rule"></div>
+    <p class="lead">${BANDA_INTRO[p.band]}</p><p>${DIAG[p.raiz]}</p>
+    <div class="darkcard"><span class="label">Nível de vazamento</span>
+      <div class="diagnum"><span class="big">${p.current}</span><span style="color:var(--text-on-dark-sub)">de 10 · quanto menor, mais blindada</span></div>
+      <div class="gauge"><i style="left:${(p.current/10)*100}%"></i></div>
+      <div class="gauge-ends"><span style="color:var(--text-on-dark-sub)">caixa protegido</span><span style="color:var(--text-on-dark-sub)">hemorragia</span></div>
+      <p style="margin:14px 0 0">Agências como a sua perdem, em média, <span class="val">~R$ 50 mil por ano</span> nesses furos. O teto documentado de prejuízo evitável chega a <span class="val">R$ 919 mil</span>. Os números são referência do que se recupera e do que se evita — não uma promessa.</p>
+    </div>
+    <div class="beliefs"><div class="b antes"><div class="t">Antes</div>${CRENCA[p.raiz].antes}</div><div class="b depois"><div class="t">Depois do desafio</div>${CRENCA[p.raiz].depois}</div></div>
+    <h3 style="margin-top:24px">${rec.rec?(rec.soft?"Vale o desafio":"Recomendação: faça este desafio"):"Talvez não seja a sua hora"}</h3><p>${rec.txt}</p>`;
+  if(rec.rec){
+    h+=`<div class="card guide"><span class="label">Seu plano de aplicação (por onde começar)</span><p style="margin:6px 0 0">O seu furo principal é o <b>${r.leak}</b> (${r.furos}). Ataque nesta ordem:</p><ol>${GUIA[p.raiz].map(li=>`<li>${li}</li>`).join("")}</ol></div>
+    <div class="qw"><span class="label" style="color:var(--gold-text)">Comece hoje, antes mesmo do desafio</span><p style="margin:8px 0 0">${QUICKWIN[p.raiz]}</p></div>
+    <h3 style="margin-top:22px">O que muda quando você tapa os furos</h3>${VITORIAS.map(w=>`<div class="win"><span class="mk">◆</span><span>${w}</span></div>`).join("")}
+    <div class="cta-row" style="margin-top:24px"><a class="cta" href="${CFG.LINK_CHECKOUT}" target="_blank" rel="noopener" onclick="pixel('AddToCart','cta_checkout')">Fazer o Desafio dos 7 Furos ›</a><button class="cta ghost" onclick="window.print()">Salvar meu diagnóstico (PDF)</button></div>`;
+  } else { h+=`<div class="cta-row" style="margin-top:20px"><button class="cta ghost" onclick="window.print()">Salvar meu diagnóstico (PDF)</button></div>`; }
+  h+=`<p class="foot-note">Este diagnóstico é um espelho da sua percepção sobre o caixa da sua agência, não uma auditoria nem uma garantia de resultado. Os valores citados são referências documentadas (média recuperada e teto evitável), e variam por agência. © Escritório de Contratos.</p></div>`;
+  stage.innerHTML=h;
+}
+function renderResultPos(p,st){
+  const r=RAIZ[p.raiz]||RAIZ.escopo; const nome=(A.contato&&A.contato.nome)?A.contato.nome.split(" ")[0]:"";
+  const antes=p.antes!==null?p.antes:null, depois=p.sinais, melhorou=antes!==null?(antes-depois):null;
+  let h=`<div class="result"><div class="printhead"><span class="kicker">Meu antes e depois · 7 Furos</span></div>
+    <span class="kicker">${nome?nome+", ":""}quanto você blindou</span><h1 style="margin-top:8px">A sua virada de caixa, em números</h1><div class="rule"></div>`;
+  if(antes!==null){
+    h+=`<div class="card"><span class="label">Furos abertos</span><div class="deltawrap"><div class="delta antes"><div class="n">${antes}</div><div class="muted">no começo</div></div><div class="arrow">›</div><div class="delta depois"><div class="n">${depois}</div><div class="muted">hoje</div></div></div>
+      <p style="text-align:center;margin:6px 0 0">${melhorou>0?("<b>Você tapou "+melhorou+" furo"+(melhorou>1?"s":"")+".</b> Isso é caixa que parou de vazar."):melhorou===0?"Você segurou o que tinha. Agora é hora do furo mais caro.":"Apareceram furos novos — bom que você percebeu. O próximo passo existe pra isso."}</p></div>`;
+  }
+  h+=`<p class="lead">Você tapou principalmente o <b>${r.leak}</b>. ${depois<=2?"O seu caixa hoje está bem protegido.":depois<=4?"Você estancou os maiores vazamentos.":"Ainda há furos abertos — e por isso o próximo passo importa."}</p>`;
+  if(p.depo){ h+=`<div class="card"><span class="label">O que você nos contou</span><p style="margin:6px 0 0;font-style:italic">“${p.depo}”</p><p class="muted" style="margin-top:8px">Obrigado. Com a sua autorização, isso vira prova pra outro dono.</p></div>`; }
+  h+=`<h3 style="margin-top:22px">O seu próximo furo é o mais caro: a precificação</h3><p>Você tapou os furos operacionais. Sobra o <b>Furo 7</b>, o estrutural — onde a margem é decidida. É exatamente o que a gente trabalha na consultoria, caso a caso.</p>
+    <div class="cta-row" style="margin-top:8px"><a class="cta" href="${CFG.LINK_CONSULTORIA}" target="_blank" rel="noopener" onclick="pixel('Lead','cta_consultoria')">Quero conhecer a consultoria ›</a><a class="cta ghost" href="${waLink()}" target="_blank" rel="noopener">Indicar um amigo dono de agência ›</a><button class="cta ghost" onclick="window.print()">Salvar meu antes e depois (PDF)</button></div>
+    <p class="foot-note">Espelho da sua percepção, não auditoria nem garantia. © Escritório de Contratos.</p></div>`;
+  stage.innerHTML=h;
+}
+function renderResultComprador(p,st){
+  const r=RAIZ[p.raiz]||RAIZ.escopo; const nome=(A.contato&&A.contato.nome)?A.contato.nome.split(" ")[0]:"";
+  stage.innerHTML=`<div class="result"><div class="printhead"><span class="kicker">Mapa dos 7 Furos</span><h2>${r.nome}</h2></div>
+    <span class="kicker">${nome?nome+", ":""}o seu mapa</span><h1 style="margin-top:8px">${r.nome}</h1><div class="rule"></div>
+    <p class="lead">${BANDA_INTRO[p.band]}</p><p>${DIAG[p.raiz]}</p>
+    <div class="darkcard"><span class="label">Nível de vazamento</span><div class="diagnum"><span class="big">${p.current}</span><span style="color:var(--text-on-dark-sub)">de 10</span></div><div class="gauge"><i style="left:${(p.current/10)*100}%"></i></div><div class="gauge-ends"><span style="color:var(--text-on-dark-sub)">caixa protegido</span><span style="color:var(--text-on-dark-sub)">hemorragia</span></div></div>
+    <div class="card guide"><span class="label">Por onde começar a tapar</span><p style="margin:6px 0 0">Seu furo principal é o <b>${r.leak}</b> (${r.furos}).</p><ol>${GUIA[p.raiz].map(li=>`<li>${li}</li>`).join("")}</ol></div>
+    <div class="qw"><span class="label" style="color:var(--gold-text)">Faça agora</span><p style="margin:8px 0 0">${QUICKWIN[p.raiz]}</p></div>
+    <h3 style="margin-top:24px">Próximo passo do seu desafio</h3>${stepper(2)}
+    <p>Com o mapa na mão, vá pra próxima ferramenta e comece a tapar o seu furo principal.</p>
+    <div class="cta-row" style="margin-top:8px"><a class="cta" href="${CFG.LINK_AREA_MEMBROS}">Voltar ao desafio ›</a><button class="cta ghost" onclick="window.print()">Salvar meu mapa (PDF)</button></div>
+    <p class="foot-note">Espelho do seu caixa, não auditoria nem garantia. © Escritório de Contratos.</p></div>`;
+}
+
+function saveLead(p,st){
+  if(A._saved) return; A._saved=true;
+  const rec={modo:MODE,data:nowISO(),inicio:startedAt,contato:A.contato||{},respostas:A,
+    perfil:{furo:p.raiz,furoNome:(RAIZ[p.raiz]||{}).leak,banda:p.band,furosAbertos:p.sinais,vazamento:p.current,disposicao:p.willing,icp:p.icp,faturamento:p.size,sobra:p.rel,jaTentou:p.tentou,perdaPercebida:p.perda,relacaoDesafio:p.livro,antes:p.antes,depoimento:p.depo},
+    estrelas:st.star,score:st.score,acao:action(p,st)};
+  try{ const all=JSON.parse(localStorage.getItem("r01_leads")||"[]"); all.push(rec); localStorage.setItem("r01_leads",JSON.stringify(all)); }catch(e){}
+  if(CFG.LEAD_WEBHOOK&&CFG.LEAD_WEBHOOK.indexOf("[")!==0){ try{ fetch(CFG.LEAD_WEBHOOK,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(rec),keepalive:true}); }catch(e){} }
+}
+function waLink(){ const n=CFG.WHATSAPP_NUM.replace(/\D/g,""); return "https://wa.me/"+(n||"")+"?text="+encodeURIComponent("Oi! Fiz o diagnóstico dos 7 Furos do Escritório de Contratos e lembrei de você. Acho que ia te ajudar a parar de vazar margem na agência."); }
+function pixel(ev,tag){ if(!CFG.PIXEL_ON) return; try{ if(window.fbq) fbq("track",ev,{content_name:tag}); }catch(e){} }
+function bumpStat(k){ try{ const s=JSON.parse(localStorage.getItem("r01_stats")||"{}"); s[k]=(s[k]||0)+1; localStorage.setItem("r01_stats",JSON.stringify(s)); }catch(e){} }
+function showAdmin(){
+  document.getElementById("app").style.display="none"; const av=document.getElementById("admin-view"); av.style.display="block";
+  const leads=JSON.parse(localStorage.getItem("r01_leads")||"[]"); const stats=JSON.parse(localStorage.getItem("r01_stats")||"{}");
+  const acessos=stats.acessos||0,capt=leads.length,conv=acessos?Math.round(capt/acessos*100):0;
+  document.getElementById("adm-kpis").innerHTML=[["Acessos",acessos],["Leads",capt],["Conclusão",conv+"%"],["Estrela média",capt?(leads.reduce((a,l)=>a+l.estrelas,0)/capt).toFixed(1):"—"]].map(k=>`<div class="adm-kpi"><div class="v">${k[1]}</div><div class="k">${k[0]}</div></div>`).join("");
+  const keys=["escopo","caixa","acordo","margem"];
+  document.getElementById("adm-dist").innerHTML=keys.map(k=>{const c=leads.filter(l=>l.perfil.furo===k).length;return `<div class="lead-row">${(RAIZ[k]||{}).leak} — <b>${c}</b> (${capt?Math.round(c/capt*100):0}%)</div>`}).join("")||"<p class='muted'>Sem dados.</p>";
+  document.getElementById("adm-leads").innerHTML=capt?leads.slice().reverse().map(l=>{const c=l.contato||{};const wn=(c.wpp||"").replace(/\D/g,"");return `<div class="lead-row"><span class="stars">${"★".repeat(l.estrelas)}${"☆".repeat(5-l.estrelas)}</span> <b>${c.nome||"—"}</b> · ${c.email||"—"} · ${c.wpp||"—"} ${c.insta||""}<div style="margin:4px 0"><span class="tag">${l.acao}</span> <span class="tag">${(RAIZ[l.perfil.furo]||{}).leak||l.perfil.furo}</span> <span class="tag">${l.perfil.faturamento}</span> <span class="tag">disp ${l.perfil.disposicao}/10</span></div>${l.perfil.depoimento?`<div style="font-style:italic">“${l.perfil.depoimento}”</div>`:""}${wn?`<a class="wbtn" target="_blank" href="https://wa.me/55${wn}?text=${encodeURIComponent("Oi "+(c.nome||"").split(" ")[0]+"! Aqui é do Escritório de Contratos. Vi o seu diagnóstico dos 7 furos e queria trocar uma ideia rápida.")}">WhatsApp</a>`:""}</div>`}).join(""):"<p class='muted'>Nenhum lead ainda neste navegador.</p>";
+}
+function exportLeads(){
+  const leads=JSON.parse(localStorage.getItem("r01_leads")||"[]"); if(!leads.length) return alert("Sem leads.");
+  const cols=["data","estrelas","acao","nome","email","wpp","instagram","furo","banda","faturamento","disposicao","relacaoDesafio","depoimento"];
+  const rows=leads.map(l=>[l.data,l.estrelas,l.acao,(l.contato||{}).nome,(l.contato||{}).email,(l.contato||{}).wpp,(l.contato||{}).insta,l.perfil.furo,l.perfil.banda,l.perfil.faturamento,l.perfil.disposicao,l.perfil.relacaoDesafio,(l.perfil.depoimento||"").replace(/\n/g," ")]);
+  const csv=[cols.join(",")].concat(rows.map(r=>r.map(x=>`"${(x==null?"":x).toString().replace(/"/g,'""')}"`).join(","))).join("\n");
+  const a=document.createElement("a"); a.href="data:text/csv;charset=utf-8,"+encodeURIComponent(csv); a.download="leads_7furos.csv"; a.click();
+}
+</script>
+</body>
+</html>
