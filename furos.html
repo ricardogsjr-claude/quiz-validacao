@@ -233,6 +233,13 @@ const CUSTO = {
   acordo:"Fechar no combinado verbal é o furo-raiz: sozinho, costuma custar <span class=\"val\">~R$ 150 mil por ano</span> em prejuízo evitável.",
   margem:"Preço montado pra caber no cliente — e não pra sobrar pra você — custa, em margem, <span class=\"val\">~R$ 180 mil por ano</span>."
 };
+/* teto evitável PROPORCIONAL AO PORTE (ICP) — ~20-30% do faturamento anual da faixa; nunca "quase 1 milhão" pra agência pequena */
+const TETO = {
+  ate5:"<span class=\"val\">~R$ 12 a 24 mil por ano</span>",
+  "5-15":"<span class=\"val\">~R$ 25 a 60 mil por ano</span>",
+  "15-50":"<span class=\"val\">~R$ 60 a 150 mil por ano</span>",
+  "50+":"<span class=\"val\">mais de R$ 150 mil por ano</span>"
+};
 
 /* ---- perguntas (sem emoji; marcador dourado) ---- */
 /* TRONCO comum (Q1–Q6) + BIFURCAÇÃO (Q6: a última opção "já fiz o desafio" ramifica) — padrão UniJam v2 */
@@ -444,7 +451,7 @@ function renderResult(){
       <div class="diagnum"><span class="big">${p.current}</span><span style="color:var(--text-on-dark-sub)">de 10 · quanto menor, mais blindada</span></div>
       ${segbar(p.current)}
       <div class="gauge-ends"><span style="color:var(--text-on-dark-sub)">caixa protegido</span><span style="color:var(--text-on-dark-sub)">hemorragia</span></div>
-      <p style="margin:14px 0 0">${CUSTO[p.raiz]||"Agências como a sua perdem, em média, <span class=\"val\">~R$ 50 mil por ano</span> nesses furos."} Somados, os 7 furos chegam a um teto de <span class="val">~R$ 946 mil por ano</span> — quase um milhão. Os números são referência do que se recupera e do que se evita — não uma promessa.</p>
+      <p style="margin:14px 0 0">Para uma agência do seu porte, somados, os 7 furos podem custar ${TETO[p.size]||"<span class=\"val\">dezenas de milhares por ano</span>"} em prejuízo evitável. ${CUSTO[p.raiz]||"Agências como a sua perdem, em média, <span class=\"val\">~R$ 50 mil por ano</span> nesses furos."} Os números são referência do que se recupera e do que se evita — não uma promessa.</p>
     </div>
     <div class="beliefs"><div class="b antes"><div class="t">Antes</div>${CRENCA[p.raiz].antes}</div><div class="b depois"><div class="t">Depois do desafio</div>${CRENCA[p.raiz].depois}</div></div>
     ${rec.rec ? `<h3 style="margin-top:24px">${rec.soft?"Vale o desafio":"Recomendação: faça este desafio"}</h3><p>${rec.txt}</p>` : `<h3 style="margin-top:24px">Talvez não seja a sua hora</h3><p>${rec.txt}</p>`}`;
