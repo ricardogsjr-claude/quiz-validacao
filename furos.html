@@ -461,7 +461,7 @@ function renderResult(){
     <h3 style="margin-top:22px">O que muda quando você tapa os furos</h3>${VITORIAS.map(w=>`<div class="win"><span class="mk">◆</span><span>${w}</span></div>`).join("")}
     <div class="cta-row" style="margin-top:24px"><a class="cta" href="${CFG.LINK_CHECKOUT}" target="_blank" rel="noopener" onclick="pixel('AddToCart','cta_checkout')">Fazer o Desafio dos 7 Furos ›</a><button class="cta ghost" onclick="window.print()">Salvar meu diagnóstico (PDF)</button></div>`;
   } else { h+=`<div class="cta-row" style="margin-top:20px"><button class="cta ghost" onclick="window.print()">Salvar meu diagnóstico (PDF)</button></div>`; }
-  h+=`<p class="foot-note">Este diagnóstico é um espelho da sua percepção sobre o caixa da sua agência, não uma auditoria nem uma garantia de resultado. Os valores citados são referências documentadas (média recuperada e teto evitável), e variam por agência. © Escritório de Contratos.</p></div>`;
+  h+=`<p class="foot-note">Este diagnóstico é um espelho da sua percepção sobre o caixa da sua agência — não é auditoria, consultoria de investimento (CVM) nem aconselhamento jurídico. É educação financeira para donos de agência. Os valores são referências documentadas (média recuperada e teto evitável), e variam por agência. © Escritório de Contratos.</p></div>`;
   stage.innerHTML=h;
 }
 function renderResultDesafio(p,st){
@@ -482,7 +482,7 @@ function renderResultDesafio(p,st){
   if(p.depo){ h+=`<div class="card"><span class="label">O que você nos contou</span><p style="margin:6px 0 0;font-style:italic">“${p.depo}”</p><p class="muted" style="margin-top:8px">Obrigado. Com a sua autorização, isso vira prova pra outro dono.</p></div>`; }
   h+=`<h3 style="margin-top:22px">O seu próximo passo é a Sessão de Diagnóstico</h3><p>${aplicou?"Você tapou os furos operacionais. Sobra o <b>Furo 7</b>, o estrutural, a precificação, onde a margem é decidida.":"O furo mais caro é o estrutural, a <b>precificação</b> (o Furo 7)."} É exatamente o que a gente trabalha caso a caso na <b>Sessão de Diagnóstico</b>, a porta da consultoria <b>Contratos com Copy</b>.</p>
     <div class="cta-row" style="margin-top:8px"><a class="cta" href="${CFG.LINK_CONSULTORIA}" target="_blank" rel="noopener" onclick="pixel('Lead','cta_sessao')">Agendar minha Sessão de Diagnóstico ›</a><a class="cta ghost" href="${waLink()}" target="_blank" rel="noopener">Indicar um amigo dono de agência ›</a><button class="cta ghost" onclick="window.print()">Salvar meu antes e depois (PDF)</button></div>
-    <p class="foot-note">Espelho da sua percepção, não auditoria nem garantia. © Escritório de Contratos.</p></div>`;
+    <p class="foot-note">Espelho da sua percepção — não é auditoria, consultoria de investimento nem aconselhamento jurídico; é educação financeira. © Escritório de Contratos.</p></div>`;
   stage.innerHTML=h;
 }
 function renderResultComprador(p,st){
