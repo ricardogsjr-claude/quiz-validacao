@@ -4,7 +4,11 @@
   TESTE DE PORTABILIDADE da engine de quiz (mesma do UniJam) adaptada ao projeto Escritório de Contratos:
     • DS "JPS" (dourado/creme, Playfair Display + Source Sans 3, sem #fff puro). EMOJI: só nas ALTERNATIVAS (regra dura do POP 48 — única exceção da Fábrica); títulos/resultado/layout seguem o DS, SEM emoji.
     • Posicionamento v3: copy pré-compra = FINANÇAS/margem; a palavra "contrato" NÃO aparece (mecanismo revelado dentro do produto).
-  3 modos: Isca (→ checkout do Desafio R$37) · Pós-consumo (?modo=pos, antes×depois dos furos tapados → consultoria/Furo 7) · Comprador (?modo=comprador, Mapa dos 7 Furos como ferramenta).
+  FLUXO INTEGRADO (padrão UniJam v2): link único com BIFURCAÇÃO na Pergunta 6.
+    - Quem NÃO consumiu → ramo frio → diagnóstico → CTA Desafio R$37.
+    - Quem responde "Já fiz o Desafio dos 7 Furos" → ramo desafio → antes(recall) + aplicou?(dado) + furos hoje + depoimento → CTA Sessão de Diagnóstico.
+    Regra do Ricardo: aplicando ou não, o consumidor vai pra Sessão de Diagnóstico (a prontidão resolve-se na conversa).
+    Atalhos: ?modo=comprador (Mapa dos 7 Furos como ferramenta) · ?modo=pos (entra direto no ramo antes/depois).
   Placeholders (Ricardo): LINK_CHECKOUT · LINK_CONSULTORIA · LINK_AREA_MEMBROS · LEAD_WEBHOOK · WHATSAPP_NUM · PIXEL_ID.
   Compliance CDC: "espelho, não garantia"; números (R$50k média / R$919k teto) enquadrados como no briefing.
 -->
@@ -29,7 +33,7 @@
   --bg-cover:#0e0e0e;--bg-page:#faf6ef;--bg-white:#ffffff;--bg-dark:#1a1814;--bg-dark-mid:#22201c;
   --gold:#b8973a;--gold-bright:#c9a84c;--gold-soft:#a88830;--gold-text:#8a7428;
   --gold-border:rgba(184,151,58,0.3);--gold-border-soft:rgba(184,151,58,0.18);--gold-glow:rgba(201,168,76,0.08);
-  --text-dark:#1e1a16;--text-body:#3e3830;--text-secondary:#5e5548;--text-muted:#8a8074;
+  --text-dark:#1e1a16;--text-body:#2e2920;--text-secondary:#473f33;--text-muted:#645a4d;
   --text-on-dark:#ede6d8;--text-on-dark-sub:#c8bfb0;
   --red:#a83028;--red-soft:#c04438;--green:#3a7848;--orange:#b87a22;--seg-empty:#ddd8d0;
   --serif:'Playfair Display',Georgia,serif;--sans:'Source Sans 3','Segoe UI',sans-serif;--mono:'JetBrains Mono',monospace;
@@ -231,22 +235,23 @@ const CUSTO = {
 };
 
 /* ---- perguntas (sem emoji; marcador dourado) ---- */
-const Q_ISCA = [
+/* TRONCO comum (Q1–Q6) + BIFURCAÇÃO (Q6: a última opção "já fiz o desafio" ramifica) — padrão UniJam v2 */
+const TRONCO = [
   {id:"intro",type:"intro"},
-  {id:"icp",type:"single",kicker:"Pergunta 1 de 9",title:"Você é dono de uma agência ou de um negócio de serviço?",
+  {id:"icp",type:"single",kicker:"Pergunta 1 de 8",title:"Você é dono de uma agência ou de um negócio de serviço?",
     options:[{em:"👑",label:"Sou dono / fundador",val:"dono"},{em:"🤝",label:"Sou sócio",val:"socio"},{em:"🧭",label:"Sou gestor (não sou dono)",val:"gestor"},{em:"🌱",label:"Ainda não tenho clientes",val:"nao_tenho"}]},
-  {id:"size",type:"single",kicker:"Pergunta 2 de 9",title:"Quanto a sua agência fatura por mês, mais ou menos?",
+  {id:"size",type:"single",kicker:"Pergunta 2 de 8",title:"Quanto a sua agência fatura por mês, mais ou menos?",
     options:[{em:"🪙",label:"Até R$ 5 mil",val:"ate5"},{em:"💵",label:"R$ 5 mil a R$ 15 mil",val:"5-15"},{em:"💰",label:"R$ 15 mil a R$ 50 mil",val:"15-50"},{em:"🏦",label:"Mais de R$ 50 mil",val:"50+"}]},
-  {id:"rel",type:"single",kicker:"Pergunta 3 de 9",title:"No fim do mês, quanto sobra?",
+  {id:"rel",type:"single",kicker:"Pergunta 3 de 8",title:"No fim do mês, quanto sobra?",
     options:[{em:"😌",label:"Sobra uma margem saudável",val:"controle"},{em:"😬",label:"Sobra, mas apertado",val:"limite"},{em:"😣",label:"Quase nada sobra",val:"escravo"},{em:"🔴",label:"Tem mês que fecho no vermelho",val:"vermelho"}]},
-  {id:"raiz",type:"single",kicker:"Pergunta 4 de 9 · a principal",title:"Qual destes mais drena o seu caixa hoje?",sub:"Escolha o que mais pesa. É esta resposta que monta o seu diagnóstico.",
+  {id:"raiz",type:"single",kicker:"Pergunta 4 de 8 · a principal",title:"Qual destes mais drena o seu caixa hoje?",sub:"Escolha o que mais pesa. É esta resposta que monta o seu diagnóstico.",
     options:[
       {em:"🎁",label:"Entrego um monte de extra de graça pra agradar o cliente",val:"escopo"},
       {em:"💸",label:"Cliente atrasa, paga pela metade, ou some devendo",val:"caixa"},
       {em:"🗣️",label:"Trabalho na confiança, sem nada por escrito",val:"acordo"},
       {em:"🏷️",label:"Sinto que cobro pouco pelo que entrego",val:"margem"}
     ]},
-  {id:"sinais",type:"multi",kicker:"Pergunta 5 de 9",title:"Quais destes você já viveu nos últimos 12 meses?",sub:"Marque todos os que aconteceram. Cada um é um furo.",
+  {id:"sinais",type:"multi",kicker:"Pergunta 5 de 8",title:"Quais destes você já viveu nos últimos 12 meses?",sub:"Marque todos os que aconteceram. Cada um é um furo.",
     options:[
       {em:"🗣️",label:"Fechei serviço sem nada formal, só no combinado",val:"f1"},
       {em:"➕",label:"\"Só mais uma coisinha\" que virou trabalho de graça",val:"f2"},
@@ -256,33 +261,38 @@ const Q_ISCA = [
       {em:"🚫",label:"Calote / tive que correr atrás de quem não pagou",val:"f6"},
       {em:"🏷️",label:"Sensação de cobrar pouco pelo tamanho da entrega",val:"f7"}
     ]},
-  {id:"tentou",type:"single",kicker:"Pergunta 6 de 9",title:"O que você já tentou pra resolver isso?",
-    options:[{em:"🆕",label:"Nada formal ainda",val:"nunca"},{em:"🌐",label:"Um modelo genérico da internet / ChatGPT",val:"tentou"},{em:"⚖️",label:"Paguei advogado, mas ninguém usa o documento",val:"advogado"},{em:"🛠️",label:"Já tenho um processo rodando",val:"trabalhando"}]},
-  {id:"crenca",type:"single",kicker:"Pergunta 7 de 9",title:"Quanto você acha que perde por ano com esses furos?",sub:"Responde no chute.",
+  {id:"bifurca",type:"single",kicker:"Pergunta 6 de 8",title:"Quando um cliente te deu prejuízo, o que você já tentou?",
+    options:[
+      {em:"🆕",label:"Nada formal, fui levando",val:"nunca"},
+      {em:"💸",label:"Apertei a cobrança, corri atrás de quem não pagou",val:"cobranca"},
+      {em:"🏷️",label:"Mexi no preço ou na forma de cobrar",val:"preco"},
+      {em:"📄",label:"Tentei deixar as regras no papel, mas na prática ninguém cumpre",val:"papel"},
+      {em:"✅",label:"Já fiz o Desafio dos 7 Furos",val:"leu"}
+    ]}
+];
+/* RAMO FRIO (não consumiu): crença + disposição → captura → resultado (CTA Desafio R$37) */
+const TAIL_FRIO = [
+  {id:"crenca",type:"single",kicker:"Pergunta 7 de 8",title:"Quanto você acha que perde por ano com esses furos?",sub:"Responde no chute.",
     options:[{em:"🤷",label:"Não faço ideia",val:"nao_sei"},{em:"💵",label:"Até R$ 10 mil",val:"ate10"},{em:"💰",label:"De R$ 10 mil a R$ 50 mil",val:"10-50"},{em:"🔥",label:"Mais de R$ 50 mil",val:"50+"}]},
-  {id:"livro",type:"single",kicker:"Pergunta 8 de 9",title:"Você já conhece o Desafio dos 7 Furos?",
-    options:[{em:"❓",label:"Não conhecia",val:"nao_conhece"},{em:"👀",label:"Quero conhecer",val:"quer"},{em:"📖",label:"Estou fazendo",val:"lendo"},{em:"✅",label:"Já fiz",val:"leu"}]},
-  {id:"disp",type:"scale",kicker:"Pergunta 9 de 9",title:"De 0 a 10, o quanto você quer parar de vazar dinheiro agora?",ends:["Tá tranquilo","Quero resolver já"]},
+  {id:"disp",type:"scale",kicker:"Pergunta 8 de 8",title:"De 0 a 10, o quanto você quer parar de vazar dinheiro agora?",ends:["Tá tranquilo","Quero resolver já"]},
   {id:"capture",type:"capture"},
   {id:"result",type:"result"}
 ];
-const Q_POS = [
-  {id:"intro",type:"intro"},
-  {id:"concluiu",type:"single",kicker:"Antes e depois",title:"Você concluiu o Desafio dos 7 Furos?",
-    options:[{em:"✅",label:"Concluí as 7 sessões",val:"sim"},{em:"🔜",label:"Estou quase",val:"quase"},{em:"🔖",label:"Fiz só uma parte",val:"parte"}]},
-  {id:"antes",type:"single",kicker:"O ponto de partida",title:"Quando você COMEÇOU, quantos dos 7 furos estavam abertos na sua agência?",sub:"No Mapa dos 7 Furos você marcou isso. Se não lembra exato, escolha o mais próximo.",
+/* RAMO DESAFIO (já consumiu): antes(recall) + aplicou?(dado/enquadramento) + hoje + depoimento → captura → resultado.
+   Regra do Ricardo: aplicando ou não, TODOS vão pra Sessão de Diagnóstico — a prontidão é resolvida na conversa. */
+const TAIL_DESAFIO = [
+  {id:"antes",type:"single",kicker:"Quando você começou o desafio",title:"Quando você COMEÇOU o Desafio dos 7 Furos, quantos furos estavam abertos na sua agência?",sub:"No Mapa dos 7 Furos você marcou isso. Se não lembra exato, escolha o mais próximo.",
     options:[{em:"🟢",label:"De 1 a 2",val:"1"},{em:"🟡",label:"De 3 a 4",val:"4"},{em:"🔴",label:"De 5 a 7",val:"7"},{em:"🤷",label:"Não lembro",val:"x"}]},
+  {id:"aplicou",type:"single",kicker:"O que você fez com o desafio",title:"Você chegou a usar as ferramentas e fechar algum furo?",sub:"Pode ser sincero. A sessão de diagnóstico funciona dos dois jeitos.",
+    options:[{em:"🔥",label:"Apliquei e já fechei vários furos",val:"fechou_varios"},{em:"🛠️",label:"Apliquei e fechei pelo menos um",val:"fechou_um"},{em:"🌱",label:"Comecei, mas a rotina não emplacou",val:"parcial"},{em:"⏳",label:"Ainda não apliquei",val:"nao_fez"}]},
   {id:"sinais",type:"multi",kicker:"Hoje",title:"Quais furos ainda estão abertos hoje?",sub:"Marque os que continuam. A diferença é a sua prova de caixa recuperado.",
     options:[
       {em:"🗣️",label:"Fecho serviço sem nada formal",val:"f1"},{em:"➕",label:"Extra de graça",val:"f2"},{em:"🔧",label:"Mudança de escopo sem cobrar",val:"f3"},{em:"🐌",label:"Projeto que arrasta",val:"f4"},{em:"⏳",label:"Cliente que atrasa e não cobro",val:"f5"},{em:"🚫",label:"Calote / negativação",val:"f6"},{em:"🏷️",label:"Cobro pouco pela entrega",val:"f7"}]},
-  {id:"raiz",type:"single",kicker:"Aplicação",title:"Qual furo você mais tapou?",
-    options:[{em:"🎁",label:"Escopo / extra de graça",val:"escopo"},{em:"💸",label:"Cobrança / inadimplência",val:"caixa"},{em:"🗣️",label:"O acordo por escrito (a raiz)",val:"acordo"},{em:"🏷️",label:"A precificação",val:"margem"}]},
-  {id:"disp",type:"scale",kicker:"Disposição",title:"De 0 a 10, o quanto você quer atacar agora o furo mais caro — a precificação?",ends:["Tô bem assim","Quero o próximo passo"]},
   {id:"depo",type:"text",kicker:"Sua história",title:"Em 2 ou 3 linhas: o que mudou no caixa da sua agência depois do desafio?",sub:"Com a sua autorização, pode dar coragem pra outro dono. (Opcional.)",placeholder:"Ex.: fechei o escopo, a inadimplência caiu, e recuperei caixa já no primeiro mês..."},
   {id:"capture",type:"capture"},
   {id:"result",type:"result"}
 ];
-const _byId = id => Q_ISCA.find(q=>q.id===id);
+const _byId = id => TRONCO.find(q=>q.id===id);
 const Q_COMPRADOR = [
   {id:"intro",type:"intro"},
   {..._byId("rel"),    kicker:"Mapa dos 7 Furos · 1 de 6"},
@@ -290,11 +300,13 @@ const Q_COMPRADOR = [
   {..._byId("sinais"), kicker:"Mapa dos 7 Furos · 3 de 6"},
   {..._byId("icp"),    kicker:"Mapa dos 7 Furos · 4 de 6"},
   {..._byId("size"),   kicker:"Mapa dos 7 Furos · 5 de 6"},
-  {..._byId("disp"),   kicker:"Mapa dos 7 Furos · 6 de 6"},
+  {id:"disp",type:"scale",kicker:"Mapa dos 7 Furos · 6 de 6",title:"De 0 a 10, o quanto você quer atacar agora o furo mais caro — a precificação?",ends:["Tô bem assim","Quero o próximo passo"]},
   {id:"capture",type:"capture"},
   {id:"result",type:"result"}
 ];
-const STEPS = MODE==="pos" ? Q_POS : MODE==="comprador" ? Q_COMPRADOR : Q_ISCA;
+let BRANCH = (MODE==="pos") ? "desafio" : "frio";
+let STEPS = MODE==="comprador" ? Q_COMPRADOR : (MODE==="pos") ? TRONCO.concat(TAIL_DESAFIO) : TRONCO.concat(TAIL_FRIO);
+function setBranch(val){ BRANCH = (val==="leu") ? "desafio" : "frio"; if(MODE!=="comprador") STEPS = TRONCO.concat(BRANCH==="desafio"?TAIL_DESAFIO:TAIL_FRIO); }
 
 let idx=0; const A={}; const startedAt=nowISO(); bumpStat("acessos"); pixel("InitiateCheckout","quiz_start");
 function nowISO(){ try{return new Date().toISOString();}catch(e){return "";} }
@@ -354,7 +366,7 @@ function renderIntro(){
     <div class="cta-row"><button class="cta" onclick="go(1)">${isca?"Descobrir os meus furos ›":"Ver o meu antes e depois ›"}</button></div>
     <p class="muted" style="margin-top:14px">É um espelho do seu caixa, não uma garantia. Leva 2 minutos.${isca?" No fim, eu digo se este desafio é mesmo pra você.":""}</p></div>`;
 }
-function pick(id,val,el){ A[id]=val; [...el.parentNode.children].forEach(c=>c.classList.remove("sel")); el.classList.add("sel"); bumpStat("resp_"+id+"_"+val); setTimeout(()=>go(1),170); }
+function pick(id,val,el){ A[id]=val; [...el.parentNode.children].forEach(c=>c.classList.remove("sel")); el.classList.add("sel"); bumpStat("resp_"+id+"_"+val); if(id==="bifurca") setBranch(val); setTimeout(()=>go(1),170); }
 function submitMulti(id){ A[id]=[...document.querySelectorAll("#multi .opt.sel")].map(e=>e.dataset.v); go(1); }
 function pickScale(id,n,el){ A[id]=n; [...el.parentNode.children].forEach(c=>c.classList.remove("sel")); el.classList.add("sel"); setTimeout(()=>go(1),170); }
 function submitText(id){ A[id]=(document.getElementById("txt").value||"").trim(); go(1); }
@@ -387,23 +399,22 @@ function profile(){
   const current=Math.max(1,Math.round(2+(sinais/7)*8)); // poucos furos = nº baixo de vazamento
   const raiz=A.raiz||"escopo";
   const willing=(typeof A.disp==="number")?A.disp:5;
-  return {raiz,band,sinais,current,willing,icp:A.icp||"",size:A.size||"",rel:A.rel||"",tentou:A.tentou||"",perda:A.crenca||"",livro:A.livro||"",antes:A.antes&&A.antes!=="x"?parseInt(A.antes,10):null,depo:A.depo||""};
+  return {raiz,band,sinais,current,willing,icp:A.icp||"",size:A.size||"",rel:A.rel||"",tentou:A.bifurca||"",perda:A.crenca||"",branch:BRANCH,aplicou:A.aplicou||"",antes:A.antes&&A.antes!=="x"?parseInt(A.antes,10):null,depo:A.depo||""};
 }
 function stars(p){
   let s=0;
-  var _icp=({dono:25,socio:20,gestor:10,nao_tenho:0})[p.icp]; s+=(_icp===undefined?(MODE==="pos"?22:8):_icp);
+  var _icp=({dono:25,socio:20,gestor:10,nao_tenho:0})[p.icp]; s+=(_icp===undefined?(p.branch==="desafio"?22:8):_icp);
   s+=({hemorragia:20,vazando:15,controlado:8})[p.band]||12;
-  s+=({trabalhando:12,advogado:13,tentou:11,nunca:7})[p.tentou]||(MODE==="pos"?14:8);
+  s+=({leu:14,papel:12,preco:10,cobranca:10,nunca:7})[p.tentou]||(p.branch==="desafio"?14:8);
   s+=Math.round((p.willing||5)*2);
-  s+=({"50+":15,"15-50":12,"5-15":7,"ate5":3})[p.size]||(MODE==="pos"?8:6);
-  if(p.livro==="leu"||p.livro==="lendo"||MODE==="pos") s+=10;       // alvo consultoria
+  s+=({"50+":15,"15-50":12,"5-15":7,"ate5":3})[p.size]||(p.branch==="desafio"?8:6);
+  if(p.branch==="desafio"){ s+=10; s+=({fechou_varios:8,fechou_um:6,parcial:3,nao_fez:1})[p.aplicou]||0; }   // já consumiu → alvo Sessão de Diagnóstico
   s+=5; if(p.perda==="50+"||p.perda==="10-50") s+=4;                 // já percebe a perda
   const star=s>=80?5:s>=65?4:s>=45?3:s>=30?2:1; return {score:s,star};
 }
 function action(p,st){
   if(MODE==="comprador") return "Acompanhar aplicação + consultoria (cliente)";
-  if(MODE==="pos") return "Consultoria (Furo 7) + colher depoimento";
-  if(p.livro==="leu"||p.livro==="lendo") return "Consultoria (Furo 7) + acompanhar";
+  if(p.branch==="desafio") return p.aplicou==="nao_fez" ? "Sessão de Diagnóstico (destravar aplicação)" : "Sessão de Diagnóstico + colher depoimento";
   if((p.size==="50+"||p.size==="15-50")&&p.band!=="controlado") return "Desafio + ponte consultoria (agência maior)";
   if(p.willing<=3||st.star<=2) return "Nutrir (lead frio)";
   return "Vender o Desafio (R$37)";
@@ -417,7 +428,7 @@ function recommend(p){
 
 function renderResult(){
   const p=profile(); const st=stars(p); saveLead(p,st); pixel("ViewContent","result_view");
-  if(MODE==="pos") return renderResultPos(p,st);
+  if(p.branch==="desafio") return renderResultDesafio(p,st);
   if(MODE==="comprador") return renderResultComprador(p,st);
   const r=RAIZ[p.raiz]||RAIZ.escopo; const rec=recommend(p);
   const nome=(A.contato&&A.contato.nome)?A.contato.nome.split(" ")[0]:"";
@@ -431,37 +442,34 @@ function renderResult(){
       <p style="margin:14px 0 0">${CUSTO[p.raiz]||"Agências como a sua perdem, em média, <span class=\"val\">~R$ 50 mil por ano</span> nesses furos."} Somados, os 7 furos chegam a um teto de <span class="val">~R$ 946 mil por ano</span> — quase um milhão. Os números são referência do que se recupera e do que se evita — não uma promessa.</p>
     </div>
     <div class="beliefs"><div class="b antes"><div class="t">Antes</div>${CRENCA[p.raiz].antes}</div><div class="b depois"><div class="t">Depois do desafio</div>${CRENCA[p.raiz].depois}</div></div>
-    ${(rec.rec && p.livro!=="leu" && p.livro!=="lendo") ? `<h3 style="margin-top:24px">${rec.soft?"Vale o desafio":"Recomendação: faça este desafio"}</h3><p>${rec.txt}</p>` : (!rec.rec ? `<h3 style="margin-top:24px">Talvez não seja a sua hora</h3><p>${rec.txt}</p>` : "")}`;
+    ${rec.rec ? `<h3 style="margin-top:24px">${rec.soft?"Vale o desafio":"Recomendação: faça este desafio"}</h3><p>${rec.txt}</p>` : `<h3 style="margin-top:24px">Talvez não seja a sua hora</h3><p>${rec.txt}</p>`}`;
   if(rec.rec){
     h+=`<div class="card guide"><span class="label">Seu plano de aplicação (por onde começar)</span><p style="margin:6px 0 0">O seu furo principal é o <b>${r.leak}</b> (${r.furos}). Ataque nesta ordem:</p><ol>${GUIA[p.raiz].map(li=>`<li>${li}</li>`).join("")}</ol></div>
-    <div class="qw"><span class="label" style="color:var(--gold-text)">Comece hoje</span><p style="margin:8px 0 0">${QUICKWIN[p.raiz]}</p></div>`;
-    if(p.livro==="leu"){
-      h+=`<h3 style="margin-top:22px">Você já fez o desafio. O furo mais caro é a precificação.</h3><p>Você tapou os furos operacionais; sobra o Furo 7, o estrutural — onde a margem é decidida. É o que a gente trabalha caso a caso na consultoria <b>Contratos com Copy</b>. <span class="muted">(Quer medir seu antes e depois? Veja <a href="?modo=pos">esta versão</a>.)</span></p>
-      <div class="cta-row" style="margin-top:8px"><a class="cta" href="${CFG.LINK_CONSULTORIA}" target="_blank" rel="noopener" onclick="pixel('Lead','cta_consultoria')">Conhecer a consultoria Contratos com Copy ›</a><button class="cta ghost" onclick="window.print()">Salvar meu diagnóstico (PDF)</button></div>`;
-    } else if(p.livro==="lendo"){
-      h+=`<h3 style="margin-top:22px">Você já está no desafio. Aproveite as ferramentas.</h3><p>Use o plano acima pra ir direto ao seu furo principal e acessar as ferramentas na área de membros.</p>
-      <div class="cta-row" style="margin-top:8px"><a class="cta" href="${CFG.LINK_AREA_MEMBROS}" onclick="pixel('ViewContent','cta_membros')">Acessar minhas ferramentas ›</a><button class="cta ghost" onclick="window.print()">Salvar meu diagnóstico (PDF)</button></div>`;
-    } else {
-      h+=`<h3 style="margin-top:22px">O que muda quando você tapa os furos</h3>${VITORIAS.map(w=>`<div class="win"><span class="mk">◆</span><span>${w}</span></div>`).join("")}
+    <div class="qw"><span class="label" style="color:var(--gold-text)">Comece hoje</span><p style="margin:8px 0 0">${QUICKWIN[p.raiz]}</p></div>
+    <h3 style="margin-top:22px">O que muda quando você tapa os furos</h3>${VITORIAS.map(w=>`<div class="win"><span class="mk">◆</span><span>${w}</span></div>`).join("")}
     <div class="cta-row" style="margin-top:24px"><a class="cta" href="${CFG.LINK_CHECKOUT}" target="_blank" rel="noopener" onclick="pixel('AddToCart','cta_checkout')">Fazer o Desafio dos 7 Furos ›</a><button class="cta ghost" onclick="window.print()">Salvar meu diagnóstico (PDF)</button></div>`;
-    }
   } else { h+=`<div class="cta-row" style="margin-top:20px"><button class="cta ghost" onclick="window.print()">Salvar meu diagnóstico (PDF)</button></div>`; }
   h+=`<p class="foot-note">Este diagnóstico é um espelho da sua percepção sobre o caixa da sua agência, não uma auditoria nem uma garantia de resultado. Os valores citados são referências documentadas (média recuperada e teto evitável), e variam por agência. © Escritório de Contratos.</p></div>`;
   stage.innerHTML=h;
 }
-function renderResultPos(p,st){
+function renderResultDesafio(p,st){
   const r=RAIZ[p.raiz]||RAIZ.escopo; const nome=(A.contato&&A.contato.nome)?A.contato.nome.split(" ")[0]:"";
   const antes=p.antes!==null?p.antes:null, depois=p.sinais, melhorou=antes!==null?(antes-depois):null;
+  const aplicou = p.aplicou && p.aplicou!=="nao_fez";
   let h=`<div class="result"><div class="printhead"><span class="kicker">Meu antes e depois · 7 Furos</span></div>
     <span class="kicker">${nome?nome+", ":""}quanto você blindou</span><h1 style="margin-top:8px">A sua virada de caixa, em números</h1><div class="rule"></div>`;
-  if(antes!==null){
+  if(antes!==null && aplicou){
     h+=`<div class="card"><span class="label">Furos abertos</span><div class="deltawrap"><div class="delta antes"><div class="n">${antes}</div><div class="muted">no começo</div></div><div class="arrow">›</div><div class="delta depois"><div class="n">${depois}</div><div class="muted">hoje</div></div></div>
       <p style="text-align:center;margin:6px 0 0">${melhorou>0?("<b>Você tapou "+melhorou+" furo"+(melhorou>1?"s":"")+".</b> Isso é caixa que parou de vazar."):melhorou===0?"Você segurou o que tinha. Agora é hora do furo mais caro.":"Apareceram furos novos — bom que você percebeu. O próximo passo existe pra isso."}</p></div>`;
   }
-  h+=`<p class="lead">Você tapou principalmente o <b>${r.leak}</b>. ${depois<=2?"O seu caixa hoje está bem protegido.":depois<=4?"Você estancou os maiores vazamentos.":"Ainda há furos abertos — e por isso o próximo passo importa."}</p>`;
+  if(aplicou){
+    h+=`<p class="lead">Você fez o desafio e já colocou a mão na massa.${antes!==null?" "+(depois<=2?"O seu caixa hoje está bem protegido.":depois<=4?"Você estancou os maiores vazamentos.":"Ainda há furos abertos, e por isso o próximo passo importa."):""}</p>`;
+  } else {
+    h+=`<p class="lead">Você fez o desafio, mas ainda não aplicou as ferramentas. Sem problema. Na Sessão de Diagnóstico a gente olha o seu caso junto e decide o melhor primeiro furo pra atacar.</p>`;
+  }
   if(p.depo){ h+=`<div class="card"><span class="label">O que você nos contou</span><p style="margin:6px 0 0;font-style:italic">“${p.depo}”</p><p class="muted" style="margin-top:8px">Obrigado. Com a sua autorização, isso vira prova pra outro dono.</p></div>`; }
-  h+=`<h3 style="margin-top:22px">O seu próximo furo é o mais caro: a precificação</h3><p>Você tapou os furos operacionais. Sobra o <b>Furo 7</b>, o estrutural — onde a margem é decidida. É exatamente o que a gente trabalha na consultoria <b>Contratos com Copy</b>, caso a caso.</p>
-    <div class="cta-row" style="margin-top:8px"><a class="cta" href="${CFG.LINK_CONSULTORIA}" target="_blank" rel="noopener" onclick="pixel('Lead','cta_consultoria')">Conhecer a Contratos com Copy ›</a><a class="cta ghost" href="${waLink()}" target="_blank" rel="noopener">Indicar um amigo dono de agência ›</a><button class="cta ghost" onclick="window.print()">Salvar meu antes e depois (PDF)</button></div>
+  h+=`<h3 style="margin-top:22px">O seu próximo passo é a Sessão de Diagnóstico</h3><p>${aplicou?"Você tapou os furos operacionais. Sobra o <b>Furo 7</b>, o estrutural, a precificação, onde a margem é decidida.":"O furo mais caro é o estrutural, a <b>precificação</b> (o Furo 7)."} É exatamente o que a gente trabalha caso a caso na <b>Sessão de Diagnóstico</b>, a porta da consultoria <b>Contratos com Copy</b>.</p>
+    <div class="cta-row" style="margin-top:8px"><a class="cta" href="${CFG.LINK_CONSULTORIA}" target="_blank" rel="noopener" onclick="pixel('Lead','cta_sessao')">Agendar minha Sessão de Diagnóstico ›</a><a class="cta ghost" href="${waLink()}" target="_blank" rel="noopener">Indicar um amigo dono de agência ›</a><button class="cta ghost" onclick="window.print()">Salvar meu antes e depois (PDF)</button></div>
     <p class="foot-note">Espelho da sua percepção, não auditoria nem garantia. © Escritório de Contratos.</p></div>`;
   stage.innerHTML=h;
 }
@@ -482,7 +490,7 @@ function renderResultComprador(p,st){
 function saveLead(p,st){
   if(A._saved) return; A._saved=true;
   const rec={modo:MODE,data:nowISO(),inicio:startedAt,contato:A.contato||{},respostas:A,
-    perfil:{furo:p.raiz,furoNome:(RAIZ[p.raiz]||{}).leak,banda:p.band,furosAbertos:p.sinais,vazamento:p.current,disposicao:p.willing,icp:p.icp,faturamento:p.size,sobra:p.rel,jaTentou:p.tentou,perdaPercebida:p.perda,relacaoDesafio:p.livro,antes:p.antes,depoimento:p.depo},
+    perfil:{furo:p.raiz,furoNome:(RAIZ[p.raiz]||{}).leak,banda:p.band,furosAbertos:p.sinais,vazamento:p.current,disposicao:p.willing,icp:p.icp,faturamento:p.size,sobra:p.rel,jaTentou:p.tentou,perdaPercebida:p.perda,relacaoDesafio:p.branch,aplicou:p.aplicou,antes:p.antes,depoimento:p.depo},
     estrelas:st.star,score:st.score,acao:action(p,st)};
   try{ const all=JSON.parse(localStorage.getItem("r01_leads")||"[]"); all.push(rec); localStorage.setItem("r01_leads",JSON.stringify(all)); }catch(e){}
   if(CFG.LEAD_WEBHOOK&&CFG.LEAD_WEBHOOK.indexOf("[")!==0){ try{ fetch(CFG.LEAD_WEBHOOK,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(rec),keepalive:true}); }catch(e){} }
