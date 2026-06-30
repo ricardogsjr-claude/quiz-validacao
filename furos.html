@@ -320,7 +320,8 @@ function progress(){
   document.getElementById("bar").style.width=pct+"%";
   const q=STEPS.filter(s=>["single","multi","scale","text"].includes(s.type)).length;
   const done=STEPS.slice(0,idx).filter(s=>["single","multi","scale","text"].includes(s.type)).length;
-  document.getElementById("pcount").textContent=(idx>0&&idx<STEPS.length-1&&done<=q)?done+"/"+q:"";
+  const isQ=["single","multi","scale","text"].includes((STEPS[idx]||{}).type);
+  document.getElementById("pcount").textContent=isQ?(done+1)+"/"+q:"";
 }
 function render(){
   const s=STEPS[idx]; progress();
@@ -329,7 +330,11 @@ function render(){
   if(s.type==="result") return renderResult();
   let h=`<div class="screen">`;
   if(idx>1) h+=`<button class="back" onclick="go(-1)">‹ voltar</button>`;
-  h+=`<h2 style="margin-top:10px">${s.title}</h2>`;
+  { const ans=x=>["single","multi","scale","text"].includes(x.type);
+    const X=STEPS.slice(0,idx).filter(ans).length+1, Y=STEPS.filter(ans).length;
+    let desc=(s.kicker||"").replace(/Pergunta\s+\d+\s+de\s+\d+/i,"").replace(/\d+\s+de\s+\d+/i,"").replace(/Mapa dos 7 Furos/i,"").replace(/^[\s·]+|[\s·]+$/g,"").trim();
+    h+=`<span class="kicker" style="display:block;margin-top:8px">Pergunta ${X} de ${Y}${desc?" · "+desc:""}</span>`; }
+  h+=`<h2 style="margin-top:6px">${s.title}</h2>`;
   h+= s.sub?`<p class="qsub">${s.sub}</p>`:`<div style="height:18px"></div>`;
   if(s.type==="single"){
     h+=`<div class="opts">`+s.options.map((o,i)=>`<button class="opt" onclick="pick('${s.id}','${o.val}',this)"><span class="mk">${o.em||"◆"}</span><span>${o.label}</span><span class="ck"></span></button>`).join("")+`</div>`;
